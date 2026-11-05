@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>小小益智樂園</title>
+<meta name="description" content="兒童益智遊戲合輯：動物遊樂園、動物叫聲、數字小天才、小暖滑滑樂">
+<meta name="theme-color" content="#FFD66B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="益智樂園">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;min-height:100dvh;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    background:linear-gradient(180deg,#8FD3FF 0%,#C9ECFF 45%,#FFF6D6 100%);
+    color:#3D2C4E;overflow-x:hidden;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  }
+  .wrap{
+    max-width:560px;margin:0 auto;
+    padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 28px);
+    position:relative;z-index:1;
+  }
+  .sky{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+  .sun{position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;
+       background:radial-gradient(circle,#FFE66D 55%,rgba(255,230,109,0) 70%);animation:spin 30s linear infinite;}
+  .cloud{position:absolute;font-size:56px;opacity:.85;animation:drift linear infinite;}
+  .c1{top:12%;animation-duration:38s;}
+  .c2{top:30%;font-size:40px;animation-duration:52s;animation-delay:-20s;}
+  .grass{position:absolute;left:0;right:0;bottom:0;height:70px;
+         background:linear-gradient(180deg,#9BE38A,#6CC56A);border-radius:50% 50% 0 0/30px 30px 0 0;}
+  @keyframes drift{from{transform:translateX(-80px)}to{transform:translateX(110vw)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  header{text-align:center;margin-bottom:18px;}
+  .mascots{font-size:40px;letter-spacing:4px;}
+  .mascots span{display:inline-block;animation:bob 2.4s ease-in-out infinite;}
+  .mascots span:nth-child(2){animation-delay:.3s}
+  .mascots span:nth-child(3){animation-delay:.6s}
+  .mascots span:nth-child(4){animation-delay:.9s}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  h1{margin:6px 0 4px;font-size:32px;font-weight:900;letter-spacing:2px;
+     color:#fff;text-shadow:0 3px 0 #F28C28,0 6px 12px rgba(0,0,0,.15);}
+  .sub{margin:0;font-size:16px;font-weight:700;color:#5A4A6E;}
+  .stars{display:inline-block;margin-top:10px;padding:6px 16px;border-radius:999px;
+         background:#fff;font-weight:900;font-size:17px;box-shadow:0 4px 0 rgba(61,44,78,.15);}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .card{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    min-height:190px;padding:16px 10px;border-radius:28px;text-decoration:none;color:#3D2C4E;
+    box-shadow:0 7px 0 rgba(61,44,78,.18);transition:transform .1s;position:relative;overflow:hidden;
+  }
+  .card:active{transform:translateY(5px) scale(.98);box-shadow:0 2px 0 rgba(61,44,78,.18);}
+  .card .emo{font-size:62px;line-height:1;margin-bottom:8px;filter:drop-shadow(0 3px 0 rgba(0,0,0,.08));}
+  .card .name{font-size:21px;font-weight:900;letter-spacing:1px;}
+  .card .desc{margin-top:6px;font-size:13.5px;font-weight:600;line-height:1.45;opacity:.8;}
+  .zoo{background:linear-gradient(160deg,#FFE29A,#FFC56B);}
+  .sound{background:linear-gradient(160deg,#B8F0C2,#7DD8A0);}
+  .number{background:linear-gradient(160deg,#C9D8FF,#9DB4FF);}
+  .warm{background:linear-gradient(160deg,#FFD1E3,#FF9EC4);}
+
+  .stars[hidden]{display:none;}
+  .tip{margin:22px 6px 0;padding:14px 16px;border-radius:20px;background:rgba(255,255,255,.75);
+       font-size:14px;line-height:1.6;font-weight:600;color:#5A4A6E;}
+  .tip b{color:#F28C28;}
+  @media (max-width:340px){.grid{grid-template-columns:1fr;}.card{min-height:150px;}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="sky">
+  <div class="sun"></div>
+  <div class="cloud c1">☁️</div>
+  <div class="cloud c2">☁️</div>
+  <div class="grass"></div>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="mascots"><span>🦊</span><span>🐘</span><span>🔢</span><span>🐣</span></div>
+    <h1>小小益智樂園</h1>
+    <p class="sub">選一個遊戲，一起來玩吧！</p>
+    <div class="stars" id="stars" hidden>⭐ 0</div>
+  </header>
+
+  <nav class="grid">
+    <a class="card zoo" href="zoo/">
+      <div class="emo">🦊</div>
+      <div class="name">動物遊樂園</div>
+      <div class="desc">記憶配對・形狀顏色<br>拼圖・節奏・迷宮</div>
+    </a>
+    <a class="card sound" href="sound/">
+      <div class="emo">🐾</div>
+      <div class="name">動物叫聲</div>
+      <div class="desc">聽聽看<br>是哪隻動物在叫？</div>
+    </a>
+    <a class="card number" href="number/">
+      <div class="emo">🔢</div>
+      <div class="name">數字小天才</div>
+      <div class="desc">1 到 10・國字・英文<br>加減・記憶</div>
+    </a>
+    <a class="card warm" href="warmmy/">
+      <div class="emo">🐣</div>
+      <div class="name">小暖滑滑樂</div>
+      <div class="desc">滑雪・漂流・賽車<br>跟小暖去冒險</div>
+    </a>
+  </nav>
+
+  <div class="tip">👨‍👩‍👧 家長小提醒：用 Safari 打開後按「分享 → <b>加入主畫面</b>」，小朋友就能一鍵開啟；玩過一次之後沒有網路也能玩。每個遊戲裡的 🏠 都能回到這裡。</div>
+</div>
+
+<script>
+(function(){
+  // 動物遊樂園累積的星星
+  try{
+    var n=parseInt(localStorage.getItem("ap_stars")||"0",10)||0;
+    if(n>0){var el=document.getElementById("stars");el.textContent="⭐ "+n;el.hidden=false;}
+  }catch(e){}
+  if("serviceWorker" in navigator && location.protocol==="https:"){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>

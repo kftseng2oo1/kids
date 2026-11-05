@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4FC3F7"/>
+      <stop offset="60%" stop-color="#B3E5FC"/>
+    </linearGradient>
+    <clipPath id="circle">
+      <circle cx="256" cy="256" r="248"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#sky)"/>
+
+  <!-- Ground layers clipped -->
+  <g clip-path="url(#circle)">
+    <ellipse cx="256" cy="430" rx="290" ry="120" fill="#5DBB63"/>
+    <ellipse cx="256" cy="480" rx="290" ry="100" fill="#C8A26B"/>
+  </g>
+
+  <!-- Sun top-right -->
+  <circle cx="400" cy="108" r="52" fill="#FFD93D" opacity="0.95"/>
+  <!-- Sun rays -->
+  <g stroke="#FFD93D" stroke-width="8" stroke-linecap="round" opacity="0.6">
+    <line x1="400" y1="44"  x2="400" y2="28"/>
+    <line x1="400" y1="172" x2="400" y2="188"/>
+    <line x1="336" y1="108" x2="320" y2="108"/>
+    <line x1="464" y1="108" x2="480" y2="108"/>
+    <line x1="355" y1="63"  x2="344" y2="52"/>
+    <line x1="445" y1="153" x2="456" y2="164"/>
+    <line x1="445" y1="63"  x2="456" y2="52"/>
+    <line x1="355" y1="153" x2="344" y2="164"/>
+  </g>
+
+  <!-- Cloud -->
+  <g fill="white" opacity="0.88">
+    <ellipse cx="130" cy="148" rx="52" ry="22"/>
+    <ellipse cx="112" cy="138" rx="28" ry="28"/>
+    <ellipse cx="148" cy="135" rx="24" ry="24"/>
+  </g>
+
+  <!-- Central paw print (white) -->
+  <!-- Main pad -->
+  <ellipse cx="256" cy="274" rx="66" ry="74" fill="white" opacity="0.95"/>
+  <!-- 4 toe pads -->
+  <circle cx="192" cy="198" r="32" fill="white" opacity="0.95"/>
+  <circle cx="232" cy="178" r="32" fill="white" opacity="0.95"/>
+  <circle cx="280" cy="178" r="32" fill="white" opacity="0.95"/>
+  <circle cx="320" cy="198" r="32" fill="white" opacity="0.95"/>
+
+  <!-- Animal accent dots (tiny colored circles hinting duck/lion/elephant) -->
+  <!-- Duck yellow splash left -->
+  <circle cx="108" cy="240" r="22" fill="#FFD93D" opacity="0.85"/>
+  <circle cx="98"  cy="220" r="13" fill="#FFD93D" opacity="0.7"/>
+  <!-- Lion orange splash right -->
+  <circle cx="404" cy="240" r="22" fill="#FF8C42" opacity="0.85"/>
+  <circle cx="414" cy="220" r="13" fill="#FF8C42" opacity="0.7"/>
+  <!-- Elephant grey below -->
+  <circle cx="256" cy="360" r="18" fill="#B0BEC5" opacity="0.8"/>
+
+  <!-- Game title arc (🐾 emoji text hint - paw symbol) -->
+  <!-- Small paw dots at corners for decoration -->
+  <circle cx="90"  cy="380" r="10" fill="white" opacity="0.5"/>
+  <circle cx="110" cy="370" r="7"  fill="white" opacity="0.5"/>
+  <circle cx="422" cy="380" r="10" fill="white" opacity="0.5"/>
+  <circle cx="402" cy="370" r="7"  fill="white" opacity="0.5"/>
+
+  <!-- Outer ring border -->
+  <circle cx="256" cy="256" r="248" fill="none" stroke="white" stroke-width="10" opacity="0.6"/>
+</svg>

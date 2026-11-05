@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#7EC8E3">
+ <link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>動物遊樂園｜兒童益智遊戲</title>  
+<style>
+  :root{
+    --sky:#7EC8E3; --sky-dark:#4FA0C9;
+    --grass:#8FD14F; --grass-dark:#5FAE33;
+    --sun:#FFD166; --sun-dark:#E3A93A;
+    --coral:#FF6F91; --coral-dark:#D94E70;
+    --purple:#9B7EDE; --purple-dark:#7856BE;
+    --plum:#3D2C4E; --cream:#FFFBF0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none;}
+  html,body{margin:0; padding:0; height:100%; overflow:hidden;}
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Heiti TC", sans-serif;
+    background:linear-gradient(180deg, var(--sky) 0%, #BEE7F5 55%, #EAF7EE 100%);
+    color:var(--plum);
+    height:100%;
+    width:100%;
+    position:fixed;
+    touch-action:manipulation;
+  }
+  .app{ height:100%; width:100%; position:relative; }
+  .screen{
+    position:absolute; inset:0; display:none; flex-direction:column;
+    padding:16px; padding-top:calc(16px + env(safe-area-inset-top));
+    padding-bottom:calc(16px + env(safe-area-inset-bottom));
+    overflow-y:auto;
+  }
+  .screen.active{ display:flex; }
+
+  /* ---- shared bits ---- */
+  h1,h2,h3{ margin:0; font-weight:800; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex:0 0 auto; }
+  .iconbtn{
+    width:46px; height:46px; border-radius:16px; border:none;
+    background:var(--cream); box-shadow:0 4px 0 rgba(61,44,78,0.18);
+    font-size:22px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .iconbtn:active{ transform:translateY(3px); box-shadow:0 1px 0 rgba(61,44,78,0.18); }
+  .stars-pill{
+    background:var(--cream); border-radius:20px; padding:8px 16px; font-weight:800;
+    box-shadow:0 4px 0 rgba(61,44,78,0.18); font-size:16px;
+  }
+
+  /* ---- home screen ---- */
+  #home{ align-items:center; justify-content:flex-start; text-align:center; }
+  .home-hero{ flex:0 0 auto; margin-top:6px; margin-bottom:10px; }
+  .mascot{
+    font-size:64px; display:inline-block;
+    animation:bob 2.2s ease-in-out infinite;
+    filter:drop-shadow(0 6px 0 rgba(0,0,0,0.08));
+  }
+  @keyframes bob{ 0%,100%{transform:translateY(0) rotate(-3deg);} 50%{transform:translateY(-10px) rotate(3deg);} }
+  .bubble{
+    background:var(--cream); border-radius:20px; padding:10px 18px; display:inline-block;
+    margin-top:8px; font-size:15px; font-weight:700; box-shadow:0 4px 0 rgba(61,44,78,0.12);
+  }
+  .title{ font-size:26px; margin:10px 0 2px 0; }
+  .subtitle{ font-size:14px; opacity:0.75; margin-bottom:18px; font-weight:600;}
+  .level-switch{ display:flex; gap:8px; margin-bottom:16px; }
+  .level-btn{
+    border:none; border-radius:16px; padding:9px 20px; font-weight:800; font-size:14px;
+    font-family:inherit; background:var(--cream); box-shadow:0 4px 0 rgba(61,44,78,0.15); cursor:pointer;
+    color:var(--plum); opacity:0.65;
+  }
+  .level-btn.active{ background:var(--sun); box-shadow:0 4px 0 var(--sun-dark); opacity:1; }
+  .level-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 rgba(61,44,78,0.15); }
+  .grid2{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%; max-width:420px;
+  }
+  .gamecard{
+    border:none; border-radius:26px; padding:18px 10px 16px; color:white; text-align:center;
+    font-family:inherit; cursor:pointer; position:relative;
+  }
+  .gamecard .emoji{ font-size:38px; display:block; margin-bottom:6px; }
+  .gamecard .label{ font-size:16px; font-weight:800; }
+  .gamecard:active{ transform:translateY(4px); }
+  .gc-memory{ background:var(--coral); box-shadow:0 7px 0 var(--coral-dark); }
+  .gc-memory:active{ box-shadow:0 2px 0 var(--coral-dark); }
+  .gc-number{ background:var(--sky-dark); box-shadow:0 7px 0 #37738F; }
+  .gc-number:active{ box-shadow:0 2px 0 #37738F; }
+  .gc-shape{ background:var(--purple); box-shadow:0 7px 0 var(--purple-dark); }
+  .gc-shape:active{ box-shadow:0 2px 0 var(--purple-dark); }
+  .gc-puzzle{ background:var(--grass-dark); box-shadow:0 7px 0 #3F7A20; }
+  .gc-puzzle:active{ box-shadow:0 2px 0 #3F7A20; }
+  .gamecard-wide{ grid-column:1 / span 2; }
+  .gc-rhythm{ background:#F4845F; box-shadow:0 7px 0 #C85F3D; }
+  .gc-rhythm:active{ box-shadow:0 2px 0 #C85F3D; }
+  .gc-maze{ background:#3FA796; box-shadow:0 7px 0 #2C7A6E; }
+  .gc-maze:active{ box-shadow:0 2px 0 #2C7A6E; }
+
+  /* ---- generic game chrome ---- */
+  .game-title{ font-size:19px; }
+  .progress-row{ display:flex; gap:6px; margin:10px 0 16px; flex:0 0 auto; }
+  .progress-dot{ flex:1; height:8px; border-radius:6px; background:rgba(61,44,78,0.15); }
+  .progress-dot.done{ background:var(--sun); }
+  .center-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .prompt-bubble{
+    background:var(--cream); border-radius:22px; padding:14px 20px; font-size:18px; font-weight:800;
+    text-align:center; box-shadow:0 5px 0 rgba(61,44,78,0.14); margin-bottom:20px; max-width:340px;
+  }
+
+  /* ---- memory game ---- */
+  .memgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; width:100%; max-width:440px; }
+  .memcard{
+    aspect-ratio:1/1; border-radius:16px; background:var(--sky-dark); box-shadow:0 5px 0 #37738F;
+    display:flex; align-items:center; justify-content:center; font-size:42px; cursor:pointer; color:white;
+  }
+  .memcard.flipped, .memcard.matched{ background:var(--cream); box-shadow:0 5px 0 rgba(61,44,78,0.14); }
+  .memcard.matched{ opacity:0.55; }
+  .memcard:active{ transform:translateY(3px); }
+
+  /* ---- number / shape choice buttons ---- */
+  .choice-row{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; max-width:380px; }
+  .choice-btn{
+    min-width:74px; padding:16px 18px; border:none; border-radius:20px; background:var(--sun);
+    box-shadow:0 6px 0 var(--sun-dark); font-size:24px; font-weight:800; color:var(--plum); cursor:pointer;
+  }
+  .choice-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 var(--sun-dark); }
+  .choice-btn.correct{ background:var(--grass); box-shadow:0 6px 0 var(--grass-dark); }
+  .choice-btn.wrong{ background:var(--coral); box-shadow:0 6px 0 var(--coral-dark); }
+  .count-row{ font-size:34px; margin-bottom:6px; letter-spacing:4px; }
+
+  /* ---- shape tiles ---- */
+  .shapegrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:340px; }
+  .shapetile{
+    aspect-ratio:1/1; background:var(--cream); border-radius:18px; box-shadow:0 5px 0 rgba(61,44,78,0.14);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .shapetile:active{ transform:translateY(3px); }
+  .shapetile.wrongflash{ background:#FFD9DE; }
+  .shp{ width:44%; height:44%; }
+  .shp-circle{ border-radius:50%; }
+  .shp-square{ border-radius:6px; }
+  .shp-triangle{ width:0; height:0; background:transparent !important; border-left:22px solid transparent; border-right:22px solid transparent; border-bottom:38px solid; }
+  .shp-star{ clip-path:polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+  /* ---- puzzle ---- */
+  .puzzle-wrap{ display:flex; flex-direction:column; align-items:center; }
+  .puzzle-board{
+    display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr);
+    width:288px; height:288px; gap:3px; background:var(--plum); border-radius:16px; overflow:hidden;
+    box-shadow:0 6px 0 rgba(61,44,78,0.18);
+  }
+  .puzzle-tile{ width:100%; height:100%; background-repeat:no-repeat; cursor:pointer; }
+  .puzzle-tile.selected{ outline:4px solid var(--sun); outline-offset:-4px; }
+  .puzzle-hint{ margin-top:12px; font-size:13px; font-weight:700; opacity:0.7; }
+
+  /* ---- rhythm game ---- */
+  .rhythm-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; width:100%; max-width:340px; }
+  .rhythm-pad{
+    aspect-ratio:1/1; border:none; border-radius:24px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-family:inherit; cursor:pointer; color:white;
+    transition:transform 0.12s ease, filter 0.12s ease;
+  }
+  .rhythm-pad .rp-emoji{ font-size:40px; }
+  .rhythm-pad .rp-label{ font-size:12px; font-weight:800; margin-top:4px; }
+  .rhythm-pad.lit{ transform:scale(1.08); filter:brightness(1.35); }
+  .rhythm-pad:active{ transform:translateY(3px) scale(0.98); }
+  .rp-0{ background:var(--sun); box-shadow:0 6px 0 var(--sun-dark); }
+  .rp-1{ background:var(--coral); box-shadow:0 6px 0 var(--coral-dark); }
+  .rp-2{ background:var(--grass); box-shadow:0 6px 0 var(--grass-dark); }
+  .rp-3{ background:var(--sky-dark); box-shadow:0 6px 0 #37738F; }
+
+  /* ---- maze game ---- */
+  .maze-wrap{ display:flex; flex-direction:column; align-items:center; }
+  .maze-board{
+    position:relative; border-radius:16px; overflow:hidden; background:var(--grass-dark);
+    box-shadow:0 6px 0 rgba(61,44,78,0.2);
+  }
+  .maze-board.shake{ animation:mazeshake 0.3s; }
+  @keyframes mazeshake{
+    10%,90%{ transform:translateX(-4px); } 20%,80%{ transform:translateX(4px); }
+    30%,50%,70%{ transform:translateX(-6px); } 40%,60%{ transform:translateX(6px); }
+  }
+  .maze-cells{ display:grid; }
+  .maze-cell{ background:var(--grass); display:flex; align-items:center; justify-content:center; }
+  .maze-cell.obstacle{ background:#6B4A32; }
+  .maze-cell .mc-icon{ font-size:70%; }
+  .maze-fox{
+    position:absolute; top:0; left:0; display:flex; align-items:center; justify-content:center;
+    transition:left 0.2s ease, top 0.2s ease; pointer-events:none;
+  }
+  .maze-controls{
+    display:grid; grid-template-columns:56px 56px 56px; grid-template-rows:56px 56px 56px;
+    gap:6px; margin-top:18px; justify-content:center;
+  }
+  .maze-btn{
+    border:none; border-radius:14px; background:var(--cream); box-shadow:0 5px 0 rgba(61,44,78,0.15);
+    font-size:22px; cursor:pointer; font-family:inherit;
+  }
+  .maze-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 rgba(61,44,78,0.15); }
+  .mc-up{ grid-column:2; grid-row:1; }
+  .mc-left{ grid-column:1; grid-row:2; }
+  .mc-right{ grid-column:3; grid-row:2; }
+  .mc-down{ grid-column:2; grid-row:3; }
+
+  /* ---- overlay ---- */
+  .overlay{
+    position:absolute; inset:0; background:rgba(61,44,78,0.55); display:none;
+    align-items:center; justify-content:center; z-index:20; padding:20px;
+  }
+  .overlay.show{ display:flex; }
+  .overlay-card{
+    background:var(--cream); border-radius:28px; padding:30px 26px; text-align:center; max-width:320px;
+    box-shadow:0 10px 0 rgba(0,0,0,0.15);
+  }
+  .overlay-card .big-emoji{ font-size:56px; display:block; margin-bottom:8px; animation:pop 0.5s ease; }
+  @keyframes pop{ 0%{transform:scale(0.4);} 70%{transform:scale(1.15);} 100%{transform:scale(1);} }
+  .overlay-card h2{ font-size:21px; margin-bottom:6px; }
+  .overlay-card p{ font-size:14px; opacity:0.8; margin:0 0 18px; font-weight:600; }
+  .overlay-btns{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .pill-btn{
+    border:none; border-radius:18px; padding:12px 20px; font-weight:800; font-size:15px; cursor:pointer;
+    background:var(--sun); box-shadow:0 5px 0 var(--sun-dark); color:var(--plum);
+  }
+  .pill-btn.secondary{ background:var(--cream); box-shadow:0 5px 0 rgba(61,44,78,0.2); }
+  .pill-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,0.2); }
+
+  .confetti{ position:fixed; top:-20px; font-size:20px; pointer-events:none; animation:fall linear forwards; z-index:30;}
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(360deg); opacity:0.9; } }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- HOME -->
+  <div class="screen active" id="home">
+    <div class="topbar">
+      <div style="display:flex;gap:8px"><a class="iconbtn" href="../" aria-label="回遊戲大廳" style="display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:22px">🏠</a><button class="iconbtn" id="soundToggleBtn">🔊</button></div>
+      <div class="stars-pill" id="totalStars">⭐ 0</div>
+    </div>
+    <div class="home-hero">
+      <span class="mascot" id="homeMascot">🦊</span><br>
+      <span class="bubble" id="homeBubble">嗨！我是毛毛狐，一起來玩吧！</span>
+    </div>
+    <h1 class="title">動物遊樂園</h1>
+    <div class="subtitle">六款益智小遊戲，動動腦真好玩</div>
+    <div class="level-switch">
+      <button class="level-btn" id="levelBasicBtn">初級</button>
+      <button class="level-btn" id="levelAdvancedBtn">進階級</button>
+    </div>
+    <div class="grid2">
+      <button class="gamecard gc-memory" data-game="memory">
+        <span class="emoji">🧠</span><span class="label">記憶配對</span>
+      </button>
+      <button class="gamecard gc-number" data-game="number">
+        <span class="emoji">🔢</span><span class="label">數字遊戲</span>
+      </button>
+      <button class="gamecard gc-shape" data-game="shape">
+        <span class="emoji">🔺</span><span class="label">形狀顏色</span>
+      </button>
+      <button class="gamecard gc-puzzle" data-game="puzzle">
+        <span class="emoji">🧩</span><span class="label">拼圖遊戲</span>
+      </button>
+      <button class="gamecard gc-rhythm" data-game="rhythm">
+        <span class="emoji">🥁</span><span class="label">森林節奏樂園</span>
+      </button>
+      <button class="gamecard gc-maze" data-game="maze">
+        <span class="emoji">🐾</span><span class="label">迷宮小冒險</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="screen" id="scr-memory">
+    <div class="topbar">
+      <button class="iconbtn" data-home="1">←</button>
+      <h2 class="game-title">記憶配對</h2>
+      <div class="stars-pill" id="memMoves">步數 0</div>
+    </div>
+    <div class="center-col">
+      <div class="prompt-bubble" id="memPreviewMsg" style="display:none;"></div>
+      <div class="memgrid" id="memGrid"></div>
+    </div>
+  </div>
+
+  <!-- NUMBER -->
+  <div class="screen" id="scr-number">
+    <div class="topbar">
+      <button class="iconbtn" data-home="1">←</button>
+      <h2 class="game-title">數字遊戲</h2>
+      <div class="stars-pill" id="numScore">0 / 8</div>
+    </div>
+    <div class="progress-row" id="numProgress"></div>
+    <div class="center-col">
+      <div class="prompt-bubble" id="numPrompt">出題中...</div>
+      <div class="count-row" id="numDisplay"></div>
+      <div class="choice-row" id="numChoices"></div>
+    </div>
+  </div>
+
+  <!-- SHAPE -->
+  <div class="screen" id="scr-shape">
+    <div class="topbar">
+      <button class="iconbtn" data-home="1">←</button>
+      <h2 class="game-title">形狀顏色</h2>
+      <div class="stars-pill" id="shapeScore">0 / 8</div>
+    </div>
+    <div class="progress-row" id="shapeProgress"></div>
+    <div class="center-col">
+      <div class="prompt-bubble" id="shapePrompt">出題中...</div>
+      <div class="shapegrid" id="shapeGrid"></div>
+    </div>
+  </div>
+
+  <!-- PUZZLE -->
+  <div class="screen" id="scr-puzzle">
+    <div class="topbar">
+      <button class="iconbtn" data-home="1">←</button>
+      <h2 class="game-title">拼圖遊戲</h2>
+      <button class="iconbtn" id="puzzleShuffleBtn">🔀</button>
+    </div>
+    <div class="center-col">
+      <div class="prompt-bubble" id="puzzlePreviewMsg" style="display:none;"></div>
+      <div class="puzzle-wrap">
+        <div class="puzzle-board" id="puzzleBoard"></div>
+        <div class="puzzle-hint">點兩塊拼圖互換位置，拼出完整圖案吧！</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RHYTHM -->
+  <div class="screen" id="scr-rhythm">
+    <div class="topbar">
+      <button class="iconbtn" data-home="1">←</button>
+      <h2 class="game-title">森林節奏樂園</h2>
+      <div class="stars-pill" id="rhythmLevel">第 1 關</div>
+    </div>
+    <div class="center-col">
+      <div class="prompt-bubble" id="rhythmPrompt">準備好了嗎？</div>
+      <div class="rhythm-grid" id="rhythmGrid"></div>
+    </div>
+  </div>
+
+  <!-- MAZE -->
+  <div class="screen" id="scr-maze">
+    <div class="topbar">
+      <button class="iconbtn" data-home="1">←</button>
+      <h2 class="game-title">迷宮小冒險</h2>
+      <div class="stars-pill" id="mazeMoves">步數 0</div>
+    </div>
+    <div class="center-col">
+      <div class="prompt-bubble">帶著毛毛狐避開障礙物，找到好朋友吧！</div>
+      <div class="maze-wrap">
+        <div class="maze-board" id="mazeBoard">
+          <div class="maze-cells" id="mazeCells"></div>
+          <div class="maze-fox" id="mazeFox">🦊</div>
+        </div>
+        <div class="maze-controls">
+          <button class="maze-btn mc-up" data-dir="up">▲</button>
+          <button class="maze-btn mc-left" data-dir="left">◀</button>
+          <button class="maze-btn mc-right" data-dir="right">▶</button>
+          <button class="maze-btn mc-down" data-dir="down">▼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-card">
+      <span class="big-emoji" id="ovEmoji">🎉</span>
+      <h2 id="ovTitle">太棒了！</h2>
+      <p id="ovDesc">你完成了！</p>
+      <div class="overlay-btns">
+        <button class="pill-btn secondary" data-home="1">回首頁</button>
+        <button class="pill-btn" id="ovRetry">再玩一次</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- storage helpers ---------- */
+  function getStars(){
+    try{ return parseInt(localStorage.getItem("ap_stars") || "0", 10) || 0; }
+    catch(e){ return 0; }
+  }
+  function addStars(n){
+    var total = getStars() + n;
+    try{ localStorage.setItem("ap_stars", String(total)); }catch(e){}
+    document.getElementById("totalStars").textContent = "⭐ " + total;
+  }
+  function refreshStars(){
+    document.getElementById("totalStars").textContent = "⭐ " + getStars();
+  }
+
+  /* ---------- difficulty level ---------- */
+  var difficulty = "basic";
+  try{
+    var savedLevel = localStorage.getItem("ap_level");
+    if(savedLevel === "advanced"){ difficulty = "advanced"; }
+  }catch(e){}
+
+  function updateLevelButtons(){
+    var b = document.getElementById("levelBasicBtn");
+    var a = document.getElementById("levelAdvancedBtn");
+    if(b && a){
+      if(difficulty === "advanced"){ a.classList.add("active"); b.classList.remove("active"); }
+      else{ b.classList.add("active"); a.classList.remove("active"); }
+    }
+  }
+
+  /* ---------- sound: speech narration + feedback beeps ---------- */
+  var soundEnabled = true;
+  try{
+    var savedSound = localStorage.getItem("ap_sound");
+    if(savedSound === "0"){ soundEnabled = false; }
+  }catch(e){}
+
+  function updateSoundBtn(){
+    var btn = document.getElementById("soundToggleBtn");
+    if(btn){ btn.textContent = soundEnabled ? "🔊" : "🔇"; }
+  }
+
+  function speak(text){
+    if(!soundEnabled) return;
+    try{
+      if(!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "zh-TW";
+      u.rate = 0.95;
+      u.pitch = 1.05;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  var audioCtx = null;
+  function getAudioCtx(){
+    if(!audioCtx){
+      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e){ audioCtx = null; }
+    }
+    return audioCtx;
+  }
+  function beep(kind){
+    if(!soundEnabled) return;
+    var ctx = getAudioCtx();
+    if(!ctx) return;
+    try{
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      if(kind === "correct"){
+        osc.frequency.setValueAtTime(660, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(880, ctx.currentTime + 0.15);
+      }else{
+        osc.frequency.setValueAtTime(220, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(140, ctx.currentTime + 0.2);
+      }
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.25);
+    }catch(e){}
+  }
+
+  /* ---------- navigation ---------- */
+  function showScreen(id){
+    var screens = document.querySelectorAll(".screen");
+    for(var i=0;i<screens.length;i++){ screens[i].classList.remove("active"); }
+    document.getElementById(id).classList.add("active");
+  }
+  function goHome(){
+    showScreen("home");
+    hideOverlay();
+    refreshStars();
+  }
+
+  function showOverlay(emoji, title, desc, retryFn){
+    document.getElementById("ovEmoji").textContent = emoji;
+    document.getElementById("ovTitle").textContent = title;
+    document.getElementById("ovDesc").textContent = desc;
+    var ov = document.getElementById("overlay");
+    ov.classList.add("show");
+    var retryBtn = document.getElementById("ovRetry");
+    retryBtn.onclick = function(){ hideOverlay(); retryFn(); };
+  }
+  function hideOverlay(){
+    document.getElementById("overlay").classList.remove("show");
+  }
+
+  function burstConfetti(x,y){
+    var emojis = ["🎉","⭐","✨","🌟"];
+    for(var i=0;i<10;i++){
+      var s = document.createElement("span");
+      s.className = "confetti";
+      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      s.style.left = (x + (Math.random()*160-80)) + "px";
+      s.style.animationDuration = (1.1 + Math.random()*0.8) + "s";
+      document.body.appendChild(s);
+      (function(node){
+        setTimeout(function(){ if(node.parentNode){ node.parentNode.removeChild(node); } }, 2200);
+      })(s);
+    }
+  }
+
+  /* ---------- shared: build progress dots ---------- */
+  function computeSquareCell(maxWidth, cols, gap){
+    var screenPadding = 32; // .screen has 16px padding on each side
+    var available = window.innerWidth - screenPadding;
+    if(available > maxWidth){ available = maxWidth; }
+    var minAvailable = cols * 30;
+    if(available < minAvailable){ available = minAvailable; }
+    var size = Math.floor((available - gap * (cols - 1)) / cols);
+    return size > 0 ? size : 30;
+  }
+
+  function buildProgress(containerId, total){
+    var el = document.getElementById(containerId);
+    el.innerHTML = "";
+    for(var i=0;i<total;i++){
+      var d = document.createElement("div");
+      d.className = "progress-dot";
+      el.appendChild(d);
+    }
+  }
+  function markProgress(containerId, index){
+    var el = document.getElementById(containerId);
+    if(el.children[index]){ el.children[index].classList.add("done"); }
+  }
+
+  /* =========================================================
+     GAME 1: MEMORY MATCH
+     ========================================================= */
+  var mem = { first:null, second:null, lock:false, moves:0, matched:0, total:6 };
+
+  function startMemory(){
+    mem = { first:null, second:null, lock:true, moves:0, matched:0, total:6 };
+    document.getElementById("memMoves").textContent = "步數 0";
+    speak("先記住動物的位置，倒數結束就要翻牌囉！");
+    var allAnimals = ["🐶","🐱","🐰","🐻","🦊","🐼","🐨","🐯"];
+    var pairCount = difficulty === "advanced" ? 8 : 6;
+    var animals = allAnimals.slice(0, pairCount);
+    mem.total = pairCount;
+    var deck = animals.concat(animals);
+    // shuffle
+    for(var i=deck.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var tmp = deck[i]; deck[i]=deck[j]; deck[j]=tmp;
+    }
+    var grid = document.getElementById("memGrid");
+    grid.innerHTML = "";
+    var memCell = computeSquareCell(440, 4, 10);
+    grid.style.gridTemplateColumns = "repeat(4, " + memCell + "px)";
+    for(var k=0;k<deck.length;k++){
+      var card = document.createElement("div");
+      card.className = "memcard flipped";
+      card.setAttribute("data-val", deck[k]);
+      card.setAttribute("data-idx", k);
+      card.textContent = deck[k];
+      card.style.width = memCell + "px";
+      card.style.height = memCell + "px";
+      card.addEventListener("click", onMemCardClick);
+      grid.appendChild(card);
+    }
+
+    var previewSeconds = 10;
+    var msg = document.getElementById("memPreviewMsg");
+    msg.style.display = "block";
+    function updatePreviewMsg(){ msg.textContent = "先記住動物的位置：" + previewSeconds + " 秒"; }
+    updatePreviewMsg();
+
+    var previewTimer = setInterval(function(){
+      previewSeconds--;
+      if(previewSeconds <= 0){
+        clearInterval(previewTimer);
+        msg.style.display = "none";
+        var cards = grid.querySelectorAll(".memcard");
+        for(var ci=0; ci<cards.length; ci++){
+          cards[ci].classList.remove("flipped");
+          cards[ci].textContent = "❓";
+        }
+        mem.lock = false;
+        speak("開始翻牌吧！");
+      }else{
+        updatePreviewMsg();
+      }
+    }, 1000);
+  }
+
+  function onMemCardClick(e){
+    if(mem.lock) return;
+    var card = e.currentTarget;
+    if(card.classList.contains("flipped") || card.classList.contains("matched")) return;
+
+    card.classList.add("flipped");
+    card.textContent = card.getAttribute("data-val");
+
+    if(!mem.first){
+      mem.first = card;
+      return;
+    }
+    mem.second = card;
+    mem.lock = true;
+    mem.moves++;
+    document.getElementById("memMoves").textContent = "步數 " + mem.moves;
+
+    var isMatch = mem.first.getAttribute("data-val") === mem.second.getAttribute("data-val");
+    if(isMatch){
+      beep("correct");
+      mem.first.classList.add("matched");
+      mem.second.classList.add("matched");
+      mem.matched++;
+      mem.first = null; mem.second = null; mem.lock = false;
+      if(mem.matched === mem.total){
+        var rect = document.getElementById("memGrid").getBoundingClientRect();
+        burstConfetti(rect.left + rect.width/2, rect.top);
+        var starsEarned = mem.moves <= 8 ? 3 : (mem.moves <= 13 ? 2 : 1);
+        addStars(starsEarned);
+        speak("太棒了，你把動物都配對成功了！");
+        setTimeout(function(){
+          showOverlay("🎉", "全部配對成功！", "你用了 " + mem.moves + " 步，獲得 " + starsEarned + " 顆星星！", startMemory);
+        }, 400);
+      }
+    }else{
+      beep("wrong");
+      setTimeout(function(){
+        mem.first.classList.remove("flipped");
+        mem.second.classList.remove("flipped");
+        mem.first.textContent = "❓";
+        mem.second.textContent = "❓";
+        mem.first = null; mem.second = null; mem.lock = false;
+      }, 700);
+    }
+  }
+
+  /* =========================================================
+     GAME 2: NUMBER GAME
+     ========================================================= */
+  var num = { round:0, total:8, score:0 };
+  var fruitEmojis = ["🍎","🍌","🍊","🍇","🍓"];
+
+  function startNumber(){
+    num = { round:0, total:8, score:0 };
+    document.getElementById("numScore").textContent = "0 / " + num.total;
+    buildProgress("numProgress", num.total);
+    speak("我們來數一數，答對就可以得到星星喔！");
+    nextNumberRound();
+  }
+
+  function nextNumberRound(){
+    if(num.round >= num.total){
+      var starsEarned = num.score >= 7 ? 3 : (num.score >= 5 ? 2 : 1);
+      addStars(starsEarned);
+      showOverlay("🥳", "數字王國過關！", "答對 " + num.score + " / " + num.total + " 題，獲得 " + starsEarned + " 顆星星！", startNumber);
+      return;
+    }
+    var display = document.getElementById("numDisplay");
+    var promptEl = document.getElementById("numPrompt");
+    var fruit = fruitEmojis[Math.floor(Math.random()*fruitEmojis.length)];
+    var answer, choices;
+
+    if(difficulty === "advanced"){
+      var advMode = Math.random();
+      if(advMode < 0.34){
+        // counting mode, larger range
+        var count = 5 + Math.floor(Math.random()*12); // 5-16
+        promptEl.textContent = "數一數，一共有幾個？";
+        var str = "";
+        for(var i=0;i<count;i++){ str += fruit; }
+        display.textContent = str;
+        answer = count;
+      }else if(advMode < 0.67){
+        // addition, bigger numbers
+        var a = 5 + Math.floor(Math.random()*8); // 5-12
+        var b = 3 + Math.floor(Math.random()*7); // 3-9
+        promptEl.textContent = "加起來是多少？";
+        display.textContent = a + " + " + b;
+        answer = a + b;
+      }else{
+        // subtraction
+        var a2 = 6 + Math.floor(Math.random()*10); // 6-15
+        var b2 = 1 + Math.floor(Math.random()*(a2-1));
+        promptEl.textContent = "減掉之後剩下多少？";
+        display.textContent = a2 + " - " + b2;
+        answer = a2 - b2;
+      }
+    }else if(Math.random() < 0.5){
+      // counting mode
+      var count = 2 + Math.floor(Math.random()*8); // 2-9
+      promptEl.textContent = "數一數，一共有幾個？";
+      var str = "";
+      for(var i=0;i<count;i++){ str += fruit; }
+      display.textContent = str;
+      answer = count;
+    }else{
+      // addition mode
+      var a = 1 + Math.floor(Math.random()*5);
+      var b = 1 + Math.floor(Math.random()*4);
+      promptEl.textContent = "加起來是多少？";
+      var strA = "", strB = "";
+      for(var x=0;x<a;x++){ strA += fruit; }
+      for(var y=0;y<b;y++){ strB += fruit; }
+      display.textContent = strA + " + " + strB;
+      answer = a + b;
+    }
+
+    speak(promptEl.textContent);
+
+    choices = [answer];
+    while(choices.length < 3){
+      var delta = (Math.floor(Math.random()*2)===0 ? -1 : 1) * (1+Math.floor(Math.random()*3));
+      var c = answer + delta;
+      if(c >= 0 && choices.indexOf(c) === -1){ choices.push(c); }
+    }
+    // shuffle choices
+    for(var m=choices.length-1;m>0;m--){
+      var n2 = Math.floor(Math.random()*(m+1));
+      var t = choices[m]; choices[m]=choices[n2]; choices[n2]=t;
+    }
+
+    var row = document.getElementById("numChoices");
+    row.innerHTML = "";
+    for(var ci=0;ci<choices.length;ci++){
+      (function(val){
+        var btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = val;
+        btn.addEventListener("click", function(){ onNumberAnswer(val, answer, btn, row); });
+        row.appendChild(btn);
+      })(choices[ci]);
+    }
+  }
+
+  function onNumberAnswer(val, answer, btn, row){
+    var buttons = row.querySelectorAll(".choice-btn");
+    for(var i=0;i<buttons.length;i++){ buttons[i].disabled = true; }
+    if(val === answer){
+      btn.classList.add("correct");
+      num.score++;
+      var rect = btn.getBoundingClientRect();
+      burstConfetti(rect.left, rect.top);
+      beep("correct");
+      speak("答對了！");
+    }else{
+      btn.classList.add("wrong");
+      for(var j=0;j<buttons.length;j++){
+        if(parseInt(buttons[j].textContent,10) === answer){ buttons[j].classList.add("correct"); }
+      }
+      beep("wrong");
+      speak("再試試看！");
+    }
+    document.getElementById("numScore").textContent = num.score + " / " + num.total;
+    markProgress("numProgress", num.round);
+    num.round++;
+    setTimeout(nextNumberRound, 850);
+  }
+
+  /* =========================================================
+     GAME 3: SHAPE & COLOR SORT
+     ========================================================= */
+  var shp = { round:0, total:8, score:0 };
+  var shapeColors = [
+    {name:"紅色", hex:"#FF6F91"},
+    {name:"黃色", hex:"#FFD166"},
+    {name:"藍色", hex:"#4FA8D8"},
+    {name:"綠色", hex:"#8FD14F"}
+  ];
+  var shapeTypes = ["circle","square","triangle","star"];
+  var shapeNames = {circle:"圓形", square:"方形", triangle:"三角形", star:"星形"};
+
+  function startShape(){
+    shp = { round:0, total:8, score:0 };
+    document.getElementById("shapeScore").textContent = "0 / " + shp.total;
+    buildProgress("shapeProgress", shp.total);
+    speak("找出正確的顏色和形狀吧！");
+    nextShapeRound();
+  }
+
+  function makeShapeEl(colorHex, type){
+    var d = document.createElement("div");
+    d.className = "shp shp-" + type;
+    if(type === "triangle"){
+      d.style.borderBottomColor = colorHex;
+    }else{
+      d.style.background = colorHex;
+    }
+    return d;
+  }
+
+  function nextShapeRound(){
+    if(shp.round >= shp.total){
+      var starsEarned = shp.score >= 7 ? 3 : (shp.score >= 5 ? 2 : 1);
+      addStars(starsEarned);
+      showOverlay("🌟", "形狀高手！", "答對 " + shp.score + " / " + shp.total + " 題，獲得 " + starsEarned + " 顆星星！", startShape);
+      return;
+    }
+    var targetColor = shapeColors[Math.floor(Math.random()*shapeColors.length)];
+    var targetType = shapeTypes[Math.floor(Math.random()*shapeTypes.length)];
+    var shapePromptText = "找出：" + targetColor.name + "的" + shapeNames[targetType];
+    document.getElementById("shapePrompt").textContent = shapePromptText;
+    speak(shapePromptText);
+
+    // build tiles, exactly one correct (more distractors on advanced)
+    var tileCount = difficulty === "advanced" ? 9 : 6;
+    var tiles = [{color:targetColor, type:targetType}];
+    while(tiles.length < tileCount){
+      var c = shapeColors[Math.floor(Math.random()*shapeColors.length)];
+      var t = shapeTypes[Math.floor(Math.random()*shapeTypes.length)];
+      if(c.name === targetColor.name && t === targetType) continue;
+      tiles.push({color:c, type:t});
+    }
+    for(var i=tiles.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var tmp = tiles[i]; tiles[i]=tiles[j]; tiles[j]=tmp;
+    }
+
+    var grid = document.getElementById("shapeGrid");
+    grid.innerHTML = "";
+    var shapeCols = 3;
+    var shapeCell = computeSquareCell(340, shapeCols, 14);
+    grid.style.gridTemplateColumns = "repeat(" + shapeCols + ", " + shapeCell + "px)";
+    for(var k=0;k<tiles.length;k++){
+      (function(tile){
+        var isCorrect = tile.color.name === targetColor.name && tile.type === targetType;
+        var cell = document.createElement("div");
+        cell.className = "shapetile";
+        cell.style.width = shapeCell + "px";
+        cell.style.height = shapeCell + "px";
+        cell.appendChild(makeShapeEl(tile.color.hex, tile.type));
+        cell.addEventListener("click", function(){ onShapeAnswer(isCorrect, cell, grid); });
+        grid.appendChild(cell);
+      })(tiles[k]);
+    }
+  }
+
+  function onShapeAnswer(isCorrect, cell, grid){
+    var tiles = grid.querySelectorAll(".shapetile");
+    for(var i=0;i<tiles.length;i++){ tiles[i].style.pointerEvents = "none"; }
+    if(isCorrect){
+      shp.score++;
+      var rect = cell.getBoundingClientRect();
+      burstConfetti(rect.left, rect.top);
+      beep("correct");
+      speak("答對了！");
+      document.getElementById("shapeScore").textContent = shp.score + " / " + shp.total;
+      markProgress("shapeProgress", shp.round);
+      shp.round++;
+      setTimeout(nextShapeRound, 700);
+    }else{
+      beep("wrong");
+      speak("再試一次！");
+      cell.classList.add("wrongflash");
+      setTimeout(function(){
+        cell.classList.remove("wrongflash");
+        for(var j=0;j<tiles.length;j++){ tiles[j].style.pointerEvents = "auto"; }
+      }, 500);
+    }
+  }
+
+  /* =========================================================
+     GAME 4: PICTURE JIGSAW
+     ========================================================= */
+  var puz = { order:[], selected:null, size:288, tile:96, locked:true, n:3, uri:null, lastTheme:-1, previewTimer:null };
+
+  var PUZZLE_SCENES = [
+    // 1. forest fox
+    '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">' +
+      '<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="#7EC8E3"/><stop offset="1" stop-color="#BEE7F5"/></linearGradient></defs>' +
+      '<rect width="300" height="300" fill="url(#g1)"/>' +
+      '<circle cx="235" cy="55" r="34" fill="#FFD166"/>' +
+      '<path d="M0 210 Q150 165 300 210 L300 300 L0 300 Z" fill="#8FD14F"/>' +
+      '<rect x="118" y="150" width="18" height="62" fill="#8B5E3C"/>' +
+      '<circle cx="127" cy="128" r="42" fill="#60A83A"/>' +
+      '<circle cx="185" cy="120" r="26" fill="#6FBF44"/>' +
+      '<circle cx="65" cy="238" r="30" fill="#FF9F5B"/>' +
+      '<polygon points="38,214 50,190 62,217" fill="#FF9F5B"/>' +
+      '<polygon points="66,217 78,190 90,214" fill="#FF9F5B"/>' +
+      '<circle cx="56" cy="230" r="6" fill="white"/><circle cx="56" cy="230" r="3" fill="#3D2C4E"/>' +
+      '<circle cx="76" cy="230" r="6" fill="white"/><circle cx="76" cy="230" r="3" fill="#3D2C4E"/>' +
+      '<ellipse cx="66" cy="246" rx="8" ry="5" fill="white"/>' +
+      '</svg>',
+    // 2. beach crab
+    '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">' +
+      '<defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="#BEE7F5"/><stop offset="1" stop-color="#FFF6DD"/></linearGradient></defs>' +
+      '<rect width="300" height="300" fill="url(#g2)"/>' +
+      '<circle cx="60" cy="55" r="30" fill="#FFD166"/>' +
+      '<path d="M0 190 Q150 165 300 190 L300 230 L0 230 Z" fill="#4FA8D8"/>' +
+      '<path d="M0 220 Q150 205 300 220 L300 300 L0 300 Z" fill="#F5E1B8"/>' +
+      '<rect x="220" y="150" width="14" height="80" fill="#8B5E3C"/>' +
+      '<path d="M227 150 Q190 130 165 150 Q195 145 227 160 Z" fill="#5FAE33"/>' +
+      '<path d="M227 150 Q265 128 290 148 Q258 143 227 160 Z" fill="#5FAE33"/>' +
+      '<path d="M227 150 Q220 115 235 90 Q225 125 227 160 Z" fill="#5FAE33"/>' +
+      '<ellipse cx="90" cy="255" rx="22" ry="12" fill="#FF6F91"/>' +
+      '<circle cx="76" cy="248" r="4" fill="#3D2C4E"/><circle cx="104" cy="248" r="4" fill="#3D2C4E"/>' +
+      '<path d="M70 250 Q60 240 66 232" stroke="#FF6F91" stroke-width="4" fill="none"/>' +
+      '<path d="M110 250 Q120 240 114 232" stroke="#FF6F91" stroke-width="4" fill="none"/>' +
+      '</svg>',
+    // 3. rainbow meadow bunny
+    '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">' +
+      '<defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="#9FD8EE"/><stop offset="1" stop-color="#EAF7EE"/></linearGradient></defs>' +
+      '<rect width="300" height="300" fill="url(#g3)"/>' +
+      '<path d="M40 190 A110 110 0 0 1 260 190" fill="none" stroke="#FF6F91" stroke-width="10"/>' +
+      '<path d="M52 190 A98 98 0 0 1 248 190" fill="none" stroke="#FFD166" stroke-width="10"/>' +
+      '<path d="M64 190 A86 86 0 0 1 236 190" fill="none" stroke="#8FD14F" stroke-width="10"/>' +
+      '<ellipse cx="230" cy="70" rx="26" ry="16" fill="white"/><ellipse cx="255" cy="75" rx="20" ry="13" fill="white"/>' +
+      '<path d="M0 230 Q150 205 300 230 L300 300 L0 300 Z" fill="#8FD14F"/>' +
+      '<circle cx="90" cy="252" r="20" fill="#F2F2F2"/>' +
+      '<ellipse cx="75" cy="228" rx="7" ry="18" fill="#F2F2F2"/><ellipse cx="105" cy="228" rx="7" ry="18" fill="#F2F2F2"/>' +
+      '<circle cx="83" cy="250" r="3" fill="#3D2C4E"/><circle cx="97" cy="250" r="3" fill="#3D2C4E"/>' +
+      '<ellipse cx="90" cy="260" rx="5" ry="3" fill="#FF9FB0"/>' +
+      '</svg>',
+    // 4. night sky owl
+    '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">' +
+      '<defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="#3D2C6E"/><stop offset="1" stop-color="#6F5FA8"/></linearGradient></defs>' +
+      '<rect width="300" height="300" fill="url(#g4)"/>' +
+      '<circle cx="230" cy="60" r="28" fill="#FFF6DD"/>' +
+      '<circle cx="242" cy="52" r="24" fill="#3D2C6E"/>' +
+      '<circle cx="60" cy="50" r="3" fill="white"/><circle cx="100" cy="80" r="2.5" fill="white"/>' +
+      '<circle cx="150" cy="40" r="2" fill="white"/><circle cx="40" cy="110" r="2.5" fill="white"/>' +
+      '<circle cx="190" cy="90" r="2" fill="white"/>' +
+      '<path d="M0 230 Q150 210 300 230 L300 300 L0 300 Z" fill="#2C7A6E"/>' +
+      '<rect x="60" y="150" width="10" height="80" fill="#5C4331"/>' +
+      '<ellipse cx="65" cy="140" rx="34" ry="30" fill="#8B5E3C"/>' +
+      '<circle cx="53" cy="130" r="11" fill="white"/><circle cx="77" cy="130" r="11" fill="white"/>' +
+      '<circle cx="53" cy="130" r="5" fill="#3D2C4E"/><circle cx="77" cy="130" r="5" fill="#3D2C4E"/>' +
+      '<polygon points="65,140 60,150 70,150" fill="#FFD166"/>' +
+      '</svg>',
+    // 5. garden butterfly
+    '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">' +
+      '<defs><linearGradient id="g5" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="#FFD9E8"/><stop offset="1" stop-color="#FFF6DD"/></linearGradient></defs>' +
+      '<rect width="300" height="300" fill="url(#g5)"/>' +
+      '<circle cx="245" cy="55" r="26" fill="#FFD166"/>' +
+      '<path d="M0 220 Q150 195 300 220 L300 300 L0 300 Z" fill="#8FD14F"/>' +
+      '<line x1="80" y1="220" x2="80" y2="260" stroke="#5FAE33" stroke-width="5"/>' +
+      '<circle cx="80" cy="210" r="16" fill="#FF6F91"/>' +
+      '<line x1="150" y1="220" x2="150" y2="270" stroke="#5FAE33" stroke-width="5"/>' +
+      '<circle cx="150" cy="205" r="18" fill="#FFD166"/>' +
+      '<line x1="210" y1="220" x2="210" y2="255" stroke="#5FAE33" stroke-width="5"/>' +
+      '<circle cx="210" cy="210" r="14" fill="#9B7EDE"/>' +
+      '<g transform="translate(150,120)">' +
+      '<ellipse cx="-12" cy="-8" rx="16" ry="11" fill="#FF9F5B"/>' +
+      '<ellipse cx="12" cy="-8" rx="16" ry="11" fill="#FFD166"/>' +
+      '<ellipse cx="-10" cy="10" rx="12" ry="8" fill="#FF6F91"/>' +
+      '<ellipse cx="10" cy="10" rx="12" ry="8" fill="#4FA8D8"/>' +
+      '<ellipse cx="0" cy="0" rx="4" ry="14" fill="#3D2C4E"/>' +
+      '</g>' +
+      '</svg>'
+  ];
+
+  function pickPuzzleUri(){
+    var idx = Math.floor(Math.random()*PUZZLE_SCENES.length);
+    if(PUZZLE_SCENES.length > 1){
+      while(idx === puz.lastTheme){ idx = Math.floor(Math.random()*PUZZLE_SCENES.length); }
+    }
+    puz.lastTheme = idx;
+    return "data:image/svg+xml," + encodeURIComponent(PUZZLE_SCENES[idx]);
+  }
+
+  function startPuzzle(){
+    if(puz.previewTimer){ clearInterval(puz.previewTimer); puz.previewTimer = null; }
+    var uri = pickPuzzleUri();
+    puz.uri = uri;
+    puz.locked = true;
+    puz.selected = null;
+    puz.n = difficulty === "advanced" ? 4 : 3;
+    puz.tile = puz.size / puz.n;
+    var board = document.getElementById("puzzleBoard");
+    board.style.gridTemplateColumns = "repeat(" + puz.n + ",1fr)";
+    board.style.gridTemplateRows = "repeat(" + puz.n + ",1fr)";
+    var total = puz.n * puz.n;
+    var solvedOrder = [];
+    for(var s=0;s<total;s++){ solvedOrder.push(s); }
+    renderBoard(solvedOrder, uri);
+
+    var msg = document.getElementById("puzzlePreviewMsg");
+    msg.style.display = "block";
+    var previewSeconds = 10;
+    function updatePreviewMsg(){ msg.textContent = "先看看完整的圖案：" + previewSeconds + " 秒"; }
+    updatePreviewMsg();
+    speak("先記住完整的圖案，等一下要把它拼回來喔！");
+
+    puz.previewTimer = setInterval(function(){
+      previewSeconds--;
+      if(previewSeconds <= 0){
+        clearInterval(puz.previewTimer);
+        puz.previewTimer = null;
+        msg.style.display = "none";
+        var order = solvedOrder.slice();
+        do {
+          for(var i=order.length-1;i>0;i--){
+            var j = Math.floor(Math.random()*(i+1));
+            var t = order[i]; order[i]=order[j]; order[j]=t;
+          }
+        } while(!isFullyShuffled(order));
+        renderBoard(order, uri);
+        puz.locked = false;
+        speak("開始拼圖吧！");
+      }else{
+        updatePreviewMsg();
+      }
+    }, 1000);
+  }
+
+  function isFullyShuffled(order){
+    // every tile must have moved off its solved position, so the scramble is always visibly obvious
+    for(var i=0;i<order.length;i++){ if(order[i] === i) return false; }
+    return true;
+  }
+
+  function renderBoard(order, uri){
+    puz.order = order;
+    var board = document.getElementById("puzzleBoard");
+    board.innerHTML = "";
+    for(var k=0;k<order.length;k++){
+      var tile = document.createElement("div");
+      tile.className = "puzzle-tile";
+      tile.setAttribute("data-pos", k);
+      renderPuzzleTile(tile, order[k], uri);
+      tile.addEventListener("click", onPuzzleTileClick);
+      board.appendChild(tile);
+    }
+  }
+
+  function renderPuzzleTile(tile, sliceIdx, uri){
+    var col = sliceIdx % puz.n, row = Math.floor(sliceIdx / puz.n);
+    tile.style.backgroundImage = "url('" + uri + "')";
+    tile.style.backgroundSize = puz.size + "px " + puz.size + "px";
+    tile.style.backgroundPosition = (-col*puz.tile) + "px " + (-row*puz.tile) + "px";
+    tile.setAttribute("data-slice", sliceIdx);
+  }
+
+  function isSolved(order){
+    for(var i=0;i<order.length;i++){ if(order[i] !== i) return false; }
+    return true;
+  }
+
+  function onPuzzleTileClick(e){
+    if(puz.locked) return;
+    var tile = e.currentTarget;
+    if(puz.selected === null){
+      puz.selected = tile;
+      tile.classList.add("selected");
+      return;
+    }
+    if(puz.selected === tile){
+      tile.classList.remove("selected");
+      puz.selected = null;
+      return;
+    }
+    // swap slices between selected and this tile
+    var a = puz.selected, b = tile;
+    var aSlice = a.getAttribute("data-slice");
+    var bSlice = b.getAttribute("data-slice");
+    var uri = puz.uri;
+    renderPuzzleTile(a, parseInt(bSlice,10), uri);
+    renderPuzzleTile(b, parseInt(aSlice,10), uri);
+    a.classList.remove("selected");
+    puz.selected = null;
+
+    // rebuild order array from DOM
+    var board = document.getElementById("puzzleBoard");
+    var tiles = board.querySelectorAll(".puzzle-tile");
+    var order = [];
+    for(var i=0;i<tiles.length;i++){ order.push(parseInt(tiles[i].getAttribute("data-slice"),10)); }
+    puz.order = order;
+
+    if(isSolved(order)){
+      var rect = board.getBoundingClientRect();
+      burstConfetti(rect.left + rect.width/2, rect.top);
+      addStars(3);
+      beep("correct");
+      speak("你把拼圖拼好了，太厲害了！");
+      setTimeout(function(){
+        showOverlay("🧩", "拼圖完成！", "你把圖案拼好了，獲得 3 顆星星！", startPuzzle);
+      }, 400);
+    }
+  }
+
+  /* =========================================================
+     GAME 5: FOREST RHYTHM (listen & repeat the melody)
+     ========================================================= */
+  var RHYTHM_PADS = [
+    { freq:261.63 }, // Do - monkey
+    { freq:293.66 }, // Re - rabbit
+    { freq:329.63 }, // Mi - frog
+    { freq:392.00 }  // Sol - bird
+  ];
+  var rhythmEmojis = ["🐵","🐰","🐸","🐦"];
+  var rhythmLabels = ["猴子敲鼓","兔子彈琴","青蛙唱歌","小鳥吹笛"];
+  var rhy = { sequence:[], playerIndex:0, level:1, locked:true };
+
+  function playNote(freq, duration){
+    if(!soundEnabled) return;
+    var ctx = getAudioCtx();
+    if(!ctx) return;
+    try{
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.connect(gain); gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      osc.start();
+      osc.stop(ctx.currentTime + duration + 0.03);
+    }catch(e){}
+  }
+
+  function buildRhythmGrid(){
+    var grid = document.getElementById("rhythmGrid");
+    grid.innerHTML = "";
+    var rhythmCell = computeSquareCell(340, 2, 14);
+    grid.style.gridTemplateColumns = "repeat(2, " + rhythmCell + "px)";
+    for(var i=0;i<RHYTHM_PADS.length;i++){
+      (function(idx){
+        var pad = document.createElement("button");
+        pad.className = "rhythm-pad rp-" + idx;
+        pad.style.width = rhythmCell + "px";
+        pad.style.height = rhythmCell + "px";
+        pad.innerHTML = "<span class='rp-emoji'>" + rhythmEmojis[idx] + "</span><span class='rp-label'>" + rhythmLabels[idx] + "</span>";
+        pad.addEventListener("click", function(){ onRhythmPadClick(idx); });
+        grid.appendChild(pad);
+      })(i);
+    }
+  }
+
+  function litPad(idx, ms){
+    var grid = document.getElementById("rhythmGrid");
+    var pad = grid.children[idx];
+    if(!pad) return;
+    pad.classList.add("lit");
+    setTimeout(function(){ pad.classList.remove("lit"); }, ms);
+  }
+
+  function startRhythm(){
+    rhy = { sequence:[], playerIndex:0, level:1, locked:true };
+    buildRhythmGrid();
+    document.getElementById("rhythmLevel").textContent = "第 1 關";
+    document.getElementById("rhythmPrompt").textContent = "仔細聽喔！";
+    speak("仔細聽，記住小動物出現的順序，再照著點點看！");
+    setTimeout(nextRhythmLevel, 1200);
+  }
+
+  function nextRhythmLevel(){
+    rhy.sequence.push(Math.floor(Math.random()*RHYTHM_PADS.length));
+    rhy.playerIndex = 0;
+    rhy.locked = true;
+    document.getElementById("rhythmLevel").textContent = "第 " + rhy.level + " 關";
+    document.getElementById("rhythmPrompt").textContent = "聽好囉...";
+    playRhythmSequence();
+  }
+
+  function playRhythmSequence(){
+    var interval = difficulty === "advanced" ? 480 : 800;
+    var seq = rhy.sequence;
+    var i = 0;
+    function step(){
+      if(i >= seq.length){
+        document.getElementById("rhythmPrompt").textContent = "換你囉，點點看！";
+        rhy.locked = false;
+        return;
+      }
+      var padIdx = seq[i];
+      litPad(padIdx, interval*0.7);
+      playNote(RHYTHM_PADS[padIdx].freq, (interval*0.6)/1000);
+      i++;
+      setTimeout(step, interval);
+    }
+    setTimeout(step, 500);
+  }
+
+  function onRhythmPadClick(idx){
+    if(rhy.locked) return;
+    litPad(idx, 220);
+    playNote(RHYTHM_PADS[idx].freq, 0.25);
+
+    var expected = rhy.sequence[rhy.playerIndex];
+    if(idx === expected){
+      rhy.playerIndex++;
+      if(rhy.playerIndex >= rhy.sequence.length){
+        rhy.locked = true;
+        beep("correct");
+        document.getElementById("rhythmPrompt").textContent = "答對了！準備下一關...";
+        rhy.level++;
+        setTimeout(nextRhythmLevel, 1000);
+      }
+    }else{
+      rhy.locked = true;
+      beep("wrong");
+      var reached = rhy.level - 1;
+      var starsEarned = reached >= 7 ? 3 : (reached >= 4 ? 2 : (reached >= 1 ? 1 : 0));
+      if(starsEarned > 0){ addStars(starsEarned); }
+      speak("再試一次，你完成了 " + reached + " 關喔！");
+      setTimeout(function(){
+        showOverlay("🎵", "節奏挑戰結束！", "你完成了 " + reached + " 關，獲得 " + starsEarned + " 顆星星！", startRhythm);
+      }, 500);
+    }
+  }
+
+  /* =========================================================
+     GAME 6: MAZE ADVENTURE (path planning)
+     ========================================================= */
+  var maze = { n:4, grid:[], r:0, c:0, goalR:0, goalC:0, cellSize:75, moves:0, optimal:0, locked:false };
+
+  function shuffleArr(arr){
+    for(var i=arr.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t = arr[i]; arr[i]=arr[j]; arr[j]=t;
+    }
+    return arr;
+  }
+
+  function carveMazePath(n){
+    var r=0, c=0;
+    var goalR=n-1, goalC=n-1;
+    var path = [{r:r,c:c}];
+    var visited = {}; visited[r+","+c] = true;
+    var steps = 0, maxSteps = n*n*6;
+    while((r!==goalR || c!==goalC) && steps < maxSteps){
+      steps++;
+      var dirs = shuffleArr([{dr:1,dc:0},{dr:-1,dc:0},{dr:0,dc:1},{dr:0,dc:-1}]);
+      dirs.sort(function(a,b){
+        var da = Math.abs((r+a.dr)-goalR) + Math.abs((c+a.dc)-goalC);
+        var db = Math.abs((r+b.dr)-goalR) + Math.abs((c+b.dc)-goalC);
+        return da - db;
+      });
+      var moved = false;
+      for(var i=0;i<dirs.length;i++){
+        var nr = r+dirs[i].dr, nc = c+dirs[i].dc;
+        if(nr<0||nr>=n||nc<0||nc>=n) continue;
+        var key = nr+","+nc;
+        if(!visited[key] || Math.random() < 0.15){
+          r=nr; c=nc; visited[key]=true; path.push({r:r,c:c}); moved=true;
+          break;
+        }
+      }
+      if(!moved){
+        var d = dirs[0];
+        var nr2 = r+d.dr, nc2 = c+d.dc;
+        if(nr2>=0 && nr2<n && nc2>=0 && nc2<n){
+          r=nr2; c=nc2; visited[r+","+c]=true; path.push({r:r,c:c});
+        }else{
+          break;
+        }
+      }
+    }
+    while(r !== goalR){ r += (r < goalR ? 1 : -1); path.push({r:r,c:c}); }
+    while(c !== goalC){ c += (c < goalC ? 1 : -1); path.push({r:r,c:c}); }
+    return path;
+  }
+
+  function generateMaze(n){
+    var grid = [];
+    for(var r=0;r<n;r++){
+      var row = [];
+      for(var c=0;c<n;c++){ row.push(0); }
+      grid.push(row);
+    }
+    var path = carveMazePath(n);
+    var pathSet = {};
+    for(var i=0;i<path.length;i++){ pathSet[path[i].r+","+path[i].c] = true; }
+    var obstacleProb = n >= 6 ? 0.3 : 0.25;
+    for(var rr=0;rr<n;rr++){
+      for(var cc=0;cc<n;cc++){
+        var key = rr+","+cc;
+        if(pathSet[key]) continue;
+        if(rr===0 && cc===0) continue;
+        if(rr===n-1 && cc===n-1) continue;
+        if(Math.random() < obstacleProb){ grid[rr][cc] = 1; }
+      }
+    }
+    return grid;
+  }
+
+  function bfsShortestSteps(grid, n){
+    var visited = {}; visited["0,0"] = true;
+    var queue = [{r:0,c:0,d:0}];
+    var qi = 0;
+    while(qi < queue.length){
+      var cur = queue[qi++];
+      if(cur.r === n-1 && cur.c === n-1) return cur.d;
+      var dirs = [{dr:1,dc:0},{dr:-1,dc:0},{dr:0,dc:1},{dr:0,dc:-1}];
+      for(var i=0;i<dirs.length;i++){
+        var nr = cur.r+dirs[i].dr, nc = cur.c+dirs[i].dc;
+        if(nr<0||nr>=n||nc<0||nc>=n) continue;
+        if(grid[nr][nc] === 1) continue;
+        var key = nr+","+nc;
+        if(visited[key]) continue;
+        visited[key] = true;
+        queue.push({r:nr,c:nc,d:cur.d+1});
+      }
+    }
+    return -1;
+  }
+
+  function startMaze(){
+    var n = difficulty === "advanced" ? 6 : 4;
+    var grid = generateMaze(n);
+    var cellSize = Math.floor(300 / n);
+    maze = { n:n, grid:grid, r:0, c:0, goalR:n-1, goalC:n-1, cellSize:cellSize, moves:0, locked:false, optimal:0 };
+    maze.optimal = bfsShortestSteps(grid, n);
+    document.getElementById("mazeMoves").textContent = "步數 0";
+    renderMazeBoard();
+    speak("點方向鍵，帶著毛毛狐避開障礙物，找到好朋友吧！");
+  }
+
+  function renderMazeBoard(){
+    var size = maze.cellSize * maze.n;
+    var board = document.getElementById("mazeBoard");
+    board.style.width = size + "px";
+    board.style.height = size + "px";
+    var cellsWrap = document.getElementById("mazeCells");
+    cellsWrap.style.gridTemplateColumns = "repeat(" + maze.n + ", " + maze.cellSize + "px)";
+    cellsWrap.style.gridTemplateRows = "repeat(" + maze.n + ", " + maze.cellSize + "px)";
+    cellsWrap.innerHTML = "";
+    for(var r=0;r<maze.n;r++){
+      for(var c=0;c<maze.n;c++){
+        var cell = document.createElement("div");
+        cell.className = "maze-cell" + (maze.grid[r][c]===1 ? " obstacle" : "");
+        if(maze.grid[r][c] === 1){
+          cell.innerHTML = "<span class='mc-icon' style='font-size:" + Math.floor(maze.cellSize*0.6) + "px'>🌳</span>";
+        }else if(r === maze.goalR && c === maze.goalC){
+          cell.innerHTML = "<span class='mc-icon' style='font-size:" + Math.floor(maze.cellSize*0.85) + "px'>⭐</span>";
+        }
+        cellsWrap.appendChild(cell);
+      }
+    }
+    var fox = document.getElementById("mazeFox");
+    fox.style.width = maze.cellSize + "px";
+    fox.style.height = maze.cellSize + "px";
+    fox.style.fontSize = Math.floor(maze.cellSize*0.6) + "px";
+    fox.style.left = (maze.c * maze.cellSize) + "px";
+    fox.style.top = (maze.r * maze.cellSize) + "px";
+  }
+
+  function moveMaze(dir){
+    if(maze.locked) return;
+    var nr = maze.r, nc = maze.c;
+    if(dir === "up"){ nr--; }
+    else if(dir === "down"){ nr++; }
+    else if(dir === "left"){ nc--; }
+    else if(dir === "right"){ nc++; }
+
+    var board = document.getElementById("mazeBoard");
+    if(nr<0 || nr>=maze.n || nc<0 || nc>=maze.n || maze.grid[nr][nc]===1){
+      beep("wrong");
+      board.classList.add("shake");
+      setTimeout(function(){ board.classList.remove("shake"); }, 300);
+      return;
+    }
+
+    maze.r = nr; maze.c = nc; maze.moves++;
+    document.getElementById("mazeMoves").textContent = "步數 " + maze.moves;
+    var fox = document.getElementById("mazeFox");
+    fox.style.left = (maze.c * maze.cellSize) + "px";
+    fox.style.top = (maze.r * maze.cellSize) + "px";
+
+    if(maze.r === maze.goalR && maze.c === maze.goalC){
+      maze.locked = true;
+      var rect = board.getBoundingClientRect();
+      burstConfetti(rect.left + rect.width/2, rect.top);
+      beep("correct");
+      var starsEarned = maze.moves <= maze.optimal + 2 ? 3 : (maze.moves <= maze.optimal + 6 ? 2 : 1);
+      addStars(starsEarned);
+      speak("太棒了，找到好朋友了！");
+      setTimeout(function(){
+        showOverlay("🐰", "順利過關！", "你走了 " + maze.moves + " 步，獲得 " + starsEarned + " 顆星星！", startMaze);
+      }, 400);
+    }else{
+      playNote(440, 0.08);
+    }
+  }
+
+  /* ---------- wiring ---------- */
+  document.addEventListener("click", function(e){
+    var homeBtn = e.target.closest ? e.target.closest("[data-home]") : null;
+    if(homeBtn){ goHome(); return; }
+    var dirBtn = e.target.closest ? e.target.closest("[data-dir]") : null;
+    if(dirBtn){ moveMaze(dirBtn.getAttribute("data-dir")); return; }
+    var gameBtn = e.target.closest ? e.target.closest("[data-game]") : null;
+    if(gameBtn){
+      var g = gameBtn.getAttribute("data-game");
+      if(g === "memory"){ showScreen("scr-memory"); startMemory(); }
+      else if(g === "number"){ showScreen("scr-number"); startNumber(); }
+      else if(g === "shape"){ showScreen("scr-shape"); startShape(); }
+      else if(g === "puzzle"){ showScreen("scr-puzzle"); startPuzzle(); }
+      else if(g === "rhythm"){ showScreen("scr-rhythm"); startRhythm(); }
+      else if(g === "maze"){ showScreen("scr-maze"); startMaze(); }
+      return;
+    }
+  });
+  document.getElementById("puzzleShuffleBtn").addEventListener("click", startPuzzle);
+
+  document.getElementById("soundToggleBtn").addEventListener("click", function(){
+    soundEnabled = !soundEnabled;
+    try{ localStorage.setItem("ap_sound", soundEnabled ? "1" : "0"); }catch(e){}
+    updateSoundBtn();
+    if(!soundEnabled){
+      try{ if("speechSynthesis" in window){ window.speechSynthesis.cancel(); } }catch(e){}
+    }else{
+      speak("聲音開啟囉！");
+    }
+  });
+
+  document.getElementById("levelBasicBtn").addEventListener("click", function(){
+    difficulty = "basic";
+    try{ localStorage.setItem("ap_level", "basic"); }catch(e){}
+    updateLevelButtons();
+  });
+  document.getElementById("levelAdvancedBtn").addEventListener("click", function(){
+    difficulty = "advanced";
+    try{ localStorage.setItem("ap_level", "advanced"); }catch(e){}
+    updateLevelButtons();
+  });
+
+  refreshStars();
+  updateSoundBtn();
+  updateLevelButtons();
+
+  /* ---------- PWA: inline manifest + service worker ---------- */
+  try{
+    var manifest = {
+      name: "動物遊樂園",
+      short_name: "動物遊樂園",
+      start_url: ".",
+      display: "standalone",
+      background_color: "#7EC8E3",
+      theme_color: "#7EC8E3",
+      icons: []
+    };
+    var manifestBlob = new Blob([JSON.stringify(manifest)], {type:"application/json"});
+    var manifestUrl = URL.createObjectURL(manifestBlob);
+    var link = document.createElement("link");
+    link.rel = "manifest";
+    link.href = manifestUrl;
+    document.head.appendChild(link);
+  }catch(e){}
+
+  if("serviceWorker" in navigator){
+    try{
+      if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){});}
+    }catch(e){}
+  }
+
+})();
+</script>
+</body>
+</html>

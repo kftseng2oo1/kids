@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B6B"/>
+      <stop offset="50%" stop-color="#FF9F43"/>
+      <stop offset="100%" stop-color="#FECA57"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDDBB4"/>
+      <stop offset="100%" stop-color="#E8A85F"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#00000030"/>
+    </filter>
+    <filter id="numShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000025"/>
+    </filter>
+  </defs>
+
+  <!-- 背景圓形 -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="220" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+  <circle cx="256" cy="256" r="185" fill="rgba(255,255,255,0.10)"/>
+
+  <!-- 數字小圓泡泡：1~9 自由散落排列 -->
+  <!-- 1 - 左上 -->
+  <circle cx="108" cy="115" r="38" fill="white" opacity="0.93" filter="url(#numShadow)"/>
+  <text x="108" y="128" font-family="Arial Black,sans-serif" font-size="44" font-weight="900"
+    fill="#FF6B6B" text-anchor="middle" dominant-baseline="middle">1</text>
+
+  <!-- 2 - 中上 -->
+  <circle cx="220" cy="88" r="36" fill="white" opacity="0.93" filter="url(#numShadow)"/>
+  <text x="220" y="100" font-family="Arial Black,sans-serif" font-size="42" font-weight="900"
+    fill="#FF9F43" text-anchor="middle" dominant-baseline="middle">2</text>
+
+  <!-- 3 - 右上 -->
+  <circle cx="340" cy="105" r="38" fill="white" opacity="0.93" filter="url(#numShadow)"/>
+  <text x="340" y="118" font-family="Arial Black,sans-serif" font-size="44" font-weight="900"
+    fill="#FECA57" text-anchor="middle" dominant-baseline="middle">3</text>
+
+  <!-- 4 - 右中上 -->
+  <circle cx="418" cy="200" r="34" fill="white" opacity="0.93" filter="url(#numShadow)"/>
+  <text x="418" y="212" font-family="Arial Black,sans-serif" font-size="40" font-weight="900"
+    fill="#48DBFB" text-anchor="middle" dominant-baseline="middle">4</text>
+
+  <!-- 5 - 中心 -->
+  <circle cx="256" cy="210" r="46" fill="white" opacity="0.96" filter="url(#shadow)"/>
+  <text x="256" y="225" font-family="Arial Black,sans-serif" font-size="56" font-weight="900"
+    fill="#FF9FF3" text-anchor="middle" dominant-baseline="middle">5</text>
+
+  <!-- 6 - 左中 -->
+  <circle cx="90" cy="230" r="34" fill="white" opacity="0.93" filter="url(#numShadow)"/>
+  <text x="90" y="242" font-family="Arial Black,sans-serif" font-size="40" font-weight="900"
+    fill="#54A0FF" text-anchor="middle" dominant-baseline="middle">6</text>
+
+  <!-- 7 - 左下 -->
+  <circle cx="130" cy="355" r="36" fill="white" opacity="0.93" filter="url(#numShadow)"/>
+  <text x="130" y="368" font-family="Arial Black,sans-serif" font-size="42" font-weight="900"
+    fill="#5F27CD" text-anchor="middle" dominant-baseline="middle">7</text>
+
+  <!-- 8 - 右下 -->
+  <circle cx="382" cy="345" r="36" fill="white" opacity="0.93" filter="url(#numShadow)"/>
+  <text x="382" y="358" font-family="Arial Black,sans-serif" font-size="42" font-weight="900"
+    fill="#00D2D3" text-anchor="middle" dominant-baseline="middle">8</text>
+
+  <!-- 9 - 中下 -->
+  <circle cx="256" cy="390" r="38" fill="white" opacity="0.93" filter="url(#numShadow)"/>
+  <text x="256" y="404" font-family="Arial Black,sans-serif" font-size="44" font-weight="900"
+    fill="#1DD1A1" text-anchor="middle" dominant-baseline="middle">9</text>
+
+  <!-- 底部文字 -->
+  <text x="256" y="478" font-family="'Noto Sans TC',Arial,sans-serif" font-size="26"
+    font-weight="900" fill="white" text-anchor="middle" opacity="0.92"
+    filter="url(#numShadow)">數字小天才</text>
+</svg>
