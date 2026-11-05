@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>小小益智樂園</title>
-<meta name="description" content="兒童益智遊戲合輯：動物遊樂園、動物叫聲、數字小天才、小暖滑滑樂">
+<meta name="description" content="兒童益智遊戲合輯：動物遊樂園、動物叫聲、數字小天才、小暖滑滑樂、注音、著色畫、打地鼠、分類">
 <meta name="theme-color" content="#FFD66B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -66,6 +66,10 @@
   .sound{background:linear-gradient(160deg,#B8F0C2,#7DD8A0);}
   .number{background:linear-gradient(160deg,#C9D8FF,#9DB4FF);}
   .warm{background:linear-gradient(160deg,#FFD1E3,#FF9EC4);}
+  .zhuyin{background:linear-gradient(160deg,#FFE0C2,#FFB86B);}
+  .color{background:linear-gradient(160deg,#E6DFFF,#B9A7FF);}
+  .mole{background:linear-gradient(160deg,#D6F5C9,#86D46F);}
+  .sort{background:linear-gradient(160deg,#FFF1C9,#FFD66B);}
 
   .stars[hidden]{display:none;}
   .tip{margin:22px 6px 0;padding:14px 16px;border-radius:20px;background:rgba(255,255,255,.75);
@@ -85,7 +89,7 @@
 
 <div class="wrap">
   <header>
-    <div class="mascots"><span>🦊</span><span>🐘</span><span>🔢</span><span>🐣</span></div>
+    <div class="mascots"><span>🦊</span><span>🐘</span><span>🎨</span><span>🐣</span></div>
     <h1>小小益智樂園</h1>
     <p class="sub">選一個遊戲，一起來玩吧！</p>
     <div class="stars" id="stars" hidden>⭐ 0</div>
@@ -111,6 +115,26 @@
       <div class="emo">🐣</div>
       <div class="name">小暖滑滑樂</div>
       <div class="desc">滑雪・漂流・賽車<br>跟小暖去冒險</div>
+    </a>
+    <a class="card zhuyin" href="zhuyin/">
+      <div class="emo" style="font-weight:900;color:#E07A1F;text-shadow:0 3px 0 #fff">ㄅㄆ</div>
+      <div class="name">注音ㄅㄆㄇ</div>
+      <div class="desc">37 個注音＋發音<br>看圖找注音</div>
+    </a>
+    <a class="card color" href="color/">
+      <div class="emo">🎨</div>
+      <div class="name">著色畫</div>
+      <div class="desc">點一下就塗滿<br>畫好可以存圖</div>
+    </a>
+    <a class="card mole" href="mole/">
+      <div class="emo">🐹</div>
+      <div class="name">打地鼠</div>
+      <div class="desc">練反應<br>小心熊爸爸！</div>
+    </a>
+    <a class="card sort" href="sort/">
+      <div class="emo">🧺</div>
+      <div class="name">分類小幫手</div>
+      <div class="desc">水果蔬菜・海洋陸地<br>會飛・冷熱</div>
     </a>
   </nav>
 

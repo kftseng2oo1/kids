@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>分類小幫手</title>
+<meta name="theme-color" content="#FFD66B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;}
+body{min-height:100vh;min-height:100dvh;font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(180deg,#FFF1C9,#FFFBEF);color:#4A3A1E;-webkit-user-select:none;user-select:none;}
+.wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 16px);}
+#kidsHome{position:fixed;z-index:99;top:calc(env(safe-area-inset-top) + 8px);left:calc(env(safe-area-inset-left) + 8px);width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:24px;text-decoration:none;background:rgba(255,255,255,.92);box-shadow:0 3px 0 rgba(0,0,0,.15);}
+h1{text-align:center;margin:6px 0 6px;font-size:28px;color:#E0A21F;letter-spacing:2px;}
+.sets{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;}
+.set{border:none;border-radius:999px;padding:9px 14px;font-size:16px;font-weight:800;background:#fff;color:#7A6640;box-shadow:0 3px 0 rgba(0,0,0,.1);font-family:inherit;}
+.set.on{background:#FFB938;color:#fff;}
+.prog{display:flex;gap:4px;justify-content:center;margin:6px 0 4px;}
+.prog i{width:18px;height:8px;border-radius:4px;background:#EEDDB5;}
+.prog i.ok{background:#7ED957;}
+.q{text-align:center;font-size:19px;font-weight:800;margin:6px 0;}
+.stage{height:190px;display:flex;align-items:center;justify-content:center;}
+.item{font-size:120px;line-height:1;animation:drop .35s;}
+@keyframes drop{from{transform:translateY(-60px) scale(.5);opacity:0}to{transform:none;opacity:1}}
+.item.go-l{animation:goL .45s forwards;}.item.go-r{animation:goR .45s forwards;}
+@keyframes goL{to{transform:translate(-110px,190px) scale(.3);opacity:0}}
+@keyframes goR{to{transform:translate(110px,190px) scale(.3);opacity:0}}
+.item.no{animation:shake .45s;}
+@keyframes shake{20%{transform:translateX(-14px) rotate(-8deg)}60%{transform:translateX(14px) rotate(8deg)}}
+.name{text-align:center;font-size:28px;font-weight:900;letter-spacing:4px;height:40px;}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;}
+.bin{border:none;border-radius:28px;padding:16px 8px;min-height:150px;font-family:inherit;color:#4A3A1E;box-shadow:0 6px 0 rgba(0,0,0,.15);}
+.bin:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.15);}
+.bin .e{font-size:58px;line-height:1.1;}
+.bin .t{font-size:22px;font-weight:900;margin-top:6px;}
+.b0{background:linear-gradient(160deg,#FFD3D3,#FF9F9F);}.b1{background:linear-gradient(160deg,#CFE8FF,#8EC5FF);}
+.win{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(74,58,30,.35);}
+.win.show{display:flex;}
+.card{background:#fff;border-radius:32px;padding:24px;max-width:320px;width:100%;text-align:center;box-shadow:0 10px 0 rgba(0,0,0,.15);}
+.card .big{font-size:80px;}.card h2{margin:6px 0 16px;font-size:26px;}
+.btn{border:none;border-radius:999px;padding:14px 24px;font-size:20px;font-weight:900;background:#FFB938;color:#fff;box-shadow:0 4px 0 #C98A12;font-family:inherit;}
+</style>
+</head>
+<body>
+<a id="kidsHome" href="../" aria-label="回遊戲大廳">🏠</a>
+<div class="wrap">
+  <h1>🧺 分類小幫手</h1>
+  <div class="sets" id="sets"></div>
+  <div class="prog" id="prog"></div>
+  <div class="q" id="q">這個要放哪一邊？</div>
+  <div class="stage"><div class="item" id="item">🍎</div></div>
+  <div class="name" id="name">蘋果</div>
+  <div class="bins">
+    <button class="bin b0" data-b="0"><div class="e" id="e0">🍎</div><div class="t" id="t0">水果</div></button>
+    <button class="bin b1" data-b="1"><div class="e" id="e1">🥕</div><div class="t" id="t1">蔬菜</div></button>
+  </div>
+</div>
+<div class="win" id="win"><div class="card"><div class="big">🏆</div><h2>全部分好了！<br>你是分類小達人</h2><button class="btn" id="again">再玩一次</button></div></div>
+<script>
+(function(){
+var $=function(id){return document.getElementById(id);};
+// 題組：[名稱, 左籃(圖,字), 右籃(圖,字), 左邊項目, 右邊項目]（項目格式 圖:名字）
+var SETS=[
+ ['水果蔬菜',['🧺','水果'],['🥬','蔬菜'],'🍎:蘋果,🍌:香蕉,🍇:葡萄,🍉:西瓜,🍓:草莓,🍊:橘子,🍍:鳳梨,🍑:桃子','🥕:紅蘿蔔,🥦:花椰菜,🌽:玉米,🍆:茄子,🥒:小黃瓜,🧅:洋蔥,🥔:馬鈴薯,🥬:青菜'],
+ ['陸地海洋',['🌳','陸地'],['🌊','海洋'],'🐶:小狗,🐘:大象,🦁:獅子,🐰:兔子,🐮:乳牛,🐒:猴子,🦒:長頸鹿,🐿️:松鼠','🐟:魚,🐙:章魚,🦈:鯊魚,🐳:鯨魚,🦀:螃蟹,🐠:熱帶魚,🦑:魷魚,🐬:海豚'],
+ ['會飛不會飛',['☁️','會飛'],['🌱','不會飛'],'🐦:小鳥,🦋:蝴蝶,🐝:蜜蜂,✈️:飛機,🦅:老鷹,🚁:直升機,🎈:氣球,🦉:貓頭鷹','🐢:烏龜,🚗:汽車,🐌:蝸牛,🐘:大象,🚲:腳踏車,🐷:小豬,🐊:鱷魚,🚂:火車'],
+ ['冷的熱的',['❄️','冷冷的'],['🔥','熱熱的'],'🍦:冰淇淋,⛄:雪人,🧊:冰塊,🐧:企鵝,🥶:好冷,🏔️:雪山,🧤:手套,🍧:剉冰','☀️:太陽,🔥:火,☕:熱茶,🍜:熱湯麵,🌋:火山,🏜️:沙漠,🥵:好熱,♨️:溫泉']
+];
+var set=0,queue=[],cur=null,done=0,locked=false,TOTAL=10;
+var voice=null;function pv(){try{var vs=speechSynthesis.getVoices();voice=vs.filter(function(v){return /zh[-_]TW/i.test(v.lang);})[0]||vs.filter(function(v){return /^zh/i.test(v.lang);})[0]||null;}catch(e){}}
+if(window.speechSynthesis){pv();speechSynthesis.onvoiceschanged=pv;}
+function say(t){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='zh-TW';u.rate=.85;if(voice)u.voice=voice;speechSynthesis.speak(u);}catch(e){}}
+var ac=null;function tone(f,d,t){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();var o=ac.createOscillator(),g=ac.createGain();o.type=t||'sine';o.frequency.value=f;
+  g.gain.setValueAtTime(.22,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+$('sets').innerHTML=SETS.map(function(s,i){return '<button class="set'+(i?'':' on')+'" data-i="'+i+'">'+s[0]+'</button>';}).join('');
+$('sets').addEventListener('click',function(e){var b=e.target.closest('.set');if(b)begin(+b.dataset.i);});
+function begin(i){set=i;var S=SETS[i];
+  [].forEach.call(document.querySelectorAll('.set'),function(x){x.classList.toggle('on',+x.dataset.i===i);});
+  $('e0').textContent=S[1][0];$('t0').textContent=S[1][1];$('e1').textContent=S[2][0];$('t1').textContent=S[2][1];
+  var a=[];[3,4].forEach(function(k,side){S[k].split(',').forEach(function(x){x=x.split(':');a.push([x[0],x[1],side]);});});
+  queue=shuffle(a).slice(0,TOTAL);done=0;
+  $('prog').innerHTML=new Array(TOTAL+1).join('<i></i>');$('win').classList.remove('show');next();}
+function next(){locked=false;cur=queue[done];var it=$('item');it.className='item';void it.offsetWidth;it.className='item';
+  it.textContent=cur[0];$('name').textContent=cur[1];$('q').textContent='「'+cur[1]+'」要放哪一邊？';say(cur[1]);}
+document.querySelector('.bins').addEventListener('click',function(e){var b=e.target.closest('.bin');if(!b||locked||!cur)return;var side=+b.dataset.b,it=$('item');
+  if(side===cur[2]){locked=true;it.className='item go-'+(side?'r':'l');tone(660,.12);setTimeout(function(){tone(990,.2);},100);
+    document.querySelectorAll('.prog i')[done].className='ok';done++;
+    if(done>=TOTAL){setTimeout(function(){$('win').classList.add('show');say('全部分好了！好棒！');tone(523,.15);setTimeout(function(){tone(659,.15);},150);setTimeout(function(){tone(784,.35);},300);},500);}
+    else setTimeout(next,550);}
+  else{it.className='item';void it.offsetWidth;it.className='item no';tone(200,.25,'triangle');say('再想想看');}});
+$('again').onclick=function(){begin(set);};
+begin(0);
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){});}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>著色畫</title>
+<meta name="theme-color" content="#B9A7FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;}
+body{min-height:100vh;min-height:100dvh;font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(180deg,#E6DFFF,#FFF5FB);color:#3D2C4E;-webkit-user-select:none;user-select:none;}
+.wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 16px);display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;}
+#kidsHome{position:fixed;z-index:99;top:calc(env(safe-area-inset-top) + 8px);left:calc(env(safe-area-inset-left) + 8px);width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:24px;text-decoration:none;background:rgba(255,255,255,.92);box-shadow:0 3px 0 rgba(0,0,0,.15);}
+h1{text-align:center;margin:6px 0 8px;font-size:28px;color:#7B5CFF;letter-spacing:2px;}
+.pics{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;}
+.pic{border:none;width:54px;height:54px;border-radius:16px;font-size:30px;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.12);}
+.pic.on{background:#7B5CFF;}
+.board{background:#fff;border-radius:28px;box-shadow:0 6px 0 rgba(0,0,0,.1);padding:8px;flex:1 1 auto;display:flex;align-items:center;justify-content:center;}
+svg{width:100%;height:auto;max-height:52vh;touch-action:manipulation;}
+svg .r{stroke:#3D2C4E;stroke-width:4;stroke-linejoin:round;cursor:pointer;transition:fill .15s;}
+svg .l{fill:none;stroke:#3D2C4E;stroke-width:4;stroke-linecap:round;pointer-events:none;}
+svg .d{fill:#3D2C4E;pointer-events:none;}
+.pal{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px;}
+.sw{height:48px;border-radius:50%;border:4px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.15);}
+.sw.on{border-color:#3D2C4E;transform:scale(1.12);}
+.tools{display:flex;gap:10px;justify-content:center;margin-top:12px;}
+.btn{border:none;border-radius:999px;padding:12px 20px;font-size:18px;font-weight:900;background:#7B5CFF;color:#fff;box-shadow:0 4px 0 #5539C9;font-family:inherit;}
+.btn.gray{background:#EEE6FF;color:#5A4A6E;box-shadow:0 4px 0 #C9BDEB;}
+.done{position:fixed;inset:0;display:none;align-items:center;justify-content:center;font-size:42px;font-weight:900;color:#fff;
+  text-shadow:0 3px 0 #7B5CFF;pointer-events:none;z-index:60;}
+.done.show{display:flex;animation:fade 1.6s forwards;}
+@keyframes fade{0%{opacity:0;transform:scale(.5)}20%{opacity:1;transform:scale(1.1)}80%{opacity:1}100%{opacity:0}}
+</style>
+</head>
+<body>
+<a id="kidsHome" href="../" aria-label="回遊戲大廳">🏠</a>
+<div class="wrap">
+  <h1>🎨 著色畫</h1>
+  <div class="pics" id="pics"></div>
+  <div class="board" id="board"></div>
+  <div class="pal" id="pal"></div>
+  <div class="tools">
+    <button class="btn gray" id="undo">↩️ 上一步</button>
+    <button class="btn gray" id="clear">🧽 重畫</button>
+    <button class="btn" id="save">📷 存圖</button>
+  </div>
+</div>
+<div class="done" id="done">畫好了！好漂亮 🌈</div>
+<script>
+(function(){
+var $=function(id){return document.getElementById(id);};
+// 每張圖：class="r" 是可以塗色的區塊，"l" 是線條，"d" 是黑色小點
+var PICS=[
+ ['🏠','<rect class="r" x="0" y="0" width="400" height="400" fill="#fff"/>'+
+  '<circle class="r" cx="335" cy="70" r="38"/>'+
+  '<path class="r" d="M0 330 Q200 300 400 330 V400 H0Z"/>'+
+  '<rect class="r" x="95" y="190" width="210" height="150"/>'+
+  '<path class="r" d="M75 195 L200 85 L325 195Z"/>'+
+  '<rect class="r" x="255" y="100" width="30" height="55"/>'+
+  '<rect class="r" x="175" y="255" width="50" height="85"/>'+
+  '<rect class="r" x="115" y="215" width="44" height="44"/>'+
+  '<rect class="r" x="241" y="215" width="44" height="44"/>'+
+  '<path class="l" d="M137 215 V259 M115 237 H159 M263 215 V259 M241 237 H285"/>'+
+  '<circle class="d" cx="215" cy="300" r="4"/>'],
+ ['🐟','<rect class="r" x="0" y="0" width="400" height="400" fill="#fff"/>'+
+  '<path class="r" d="M0 345 Q50 325 100 345 T200 345 T300 345 T400 345 V400 H0Z"/>'+
+  '<path class="r" d="M300 200 L380 140 L370 200 L380 260Z"/>'+
+  '<ellipse class="r" cx="190" cy="200" rx="125" ry="80"/>'+
+  '<path class="r" d="M170 125 Q200 70 245 135Z"/>'+
+  '<path class="r" d="M150 205 Q185 230 170 265 Q140 240 150 205Z"/>'+
+  '<circle class="r" cx="115" cy="185" r="20"/>'+
+  '<circle class="d" cx="111" cy="183" r="8"/>'+
+  '<path class="l" d="M210 160 Q230 200 210 240 M245 165 Q265 200 245 235"/>'+
+  '<circle class="r" cx="60" cy="90" r="14"/><circle class="r" cx="85" cy="55" r="10"/>'],
+ ['🌷','<rect class="r" x="0" y="0" width="400" height="400" fill="#fff"/>'+
+  '<path class="r" d="M0 350 H400 V400 H0Z"/>'+
+  '<path class="r" d="M192 200 H208 V350 H192Z"/>'+
+  '<path class="r" d="M196 300 Q120 290 110 230 Q175 235 196 290Z"/>'+
+  '<path class="r" d="M204 270 Q280 260 290 205 Q225 210 204 260Z"/>'+
+  '<circle class="r" cx="200" cy="80" r="40"/><circle class="r" cx="270" cy="130" r="40"/>'+
+  '<circle class="r" cx="130" cy="130" r="40"/><circle class="r" cx="155" cy="195" r="40"/><circle class="r" cx="245" cy="195" r="40"/>'+
+  '<circle class="r" cx="200" cy="145" r="42"/>'+
+  '<path class="r" d="M50 60 Q70 30 90 60 Q70 50 50 60Z"/>'],
+ ['🚗','<rect class="r" x="0" y="0" width="400" height="400" fill="#fff"/>'+
+  '<path class="r" d="M0 310 H400 V400 H0Z"/>'+
+  '<path class="l" d="M30 355 H90 M160 355 H230 M300 355 H370"/>'+
+  '<path class="r" d="M40 280 V220 Q40 200 65 200 H110 L150 140 H270 L320 200 H345 Q365 200 365 225 V280Z"/>'+
+  '<path class="r" d="M160 155 H205 V200 H130Z"/>'+
+  '<path class="r" d="M220 155 H262 L300 200 H220Z"/>'+
+  '<circle class="r" cx="110" cy="285" r="38"/><circle class="r" cx="110" cy="285" r="15"/>'+
+  '<circle class="r" cx="295" cy="285" r="38"/><circle class="r" cx="295" cy="285" r="15"/>'+
+  '<rect class="r" x="340" y="215" width="20" height="18"/>'+
+  '<circle class="r" cx="70" cy="70" r="30"/>'],
+ ['🐱','<rect class="r" x="0" y="0" width="400" height="400" fill="#fff"/>'+
+  '<path class="r" d="M300 330 Q370 300 350 230 Q340 210 355 195" data-nofill="1" style="fill:none"/>'+
+  '<ellipse class="r" cx="200" cy="300" rx="110" ry="75"/>'+
+  '<path class="r" d="M110 95 L130 175 L170 140Z"/><path class="r" d="M290 95 L270 175 L230 140Z"/>'+
+  '<circle class="r" cx="200" cy="185" r="85"/>'+
+  '<ellipse class="r" cx="165" cy="175" rx="14" ry="18"/><ellipse class="r" cx="235" cy="175" rx="14" ry="18"/>'+
+  '<path class="r" d="M190 205 H210 L200 217Z"/>'+
+  '<path class="l" d="M200 217 Q190 235 175 228 M200 217 Q210 235 225 228 M120 205 H165 M120 220 L165 213 M280 205 H235 M280 220 L235 213"/>'+
+  '<ellipse class="r" cx="150" cy="365" rx="30" ry="16"/><ellipse class="r" cx="250" cy="365" rx="30" ry="16"/>']
+];
+var COLORS=['#FF5C5C','#FF9F43','#FFE04B','#7ED957','#2EC4B6','#4D96FF','#8E6CFF','#FF7EB6','#A0522D','#9AA0A6','#3D2C4E','#FFFFFF'];
+var color=COLORS[0],pic=0,hist=[];
+var pal='';COLORS.forEach(function(c,i){pal+='<button class="sw'+(i?'':' on')+'" data-c="'+c+'" style="background:'+c+'" aria-label="顏色"></button>';});
+$('pal').innerHTML=pal;
+$('pal').addEventListener('click',function(e){var b=e.target.closest('.sw');if(!b)return;color=b.dataset.c;
+  [].forEach.call(document.querySelectorAll('.sw'),function(x){x.classList.toggle('on',x===b);});});
+$('pics').innerHTML=PICS.map(function(p,i){return '<button class="pic'+(i?'':' on')+'" data-i="'+i+'">'+p[0]+'</button>';}).join('');
+$('pics').addEventListener('click',function(e){var b=e.target.closest('.pic');if(!b)return;load(+b.dataset.i);});
+
+var ac=null;
+function pop(){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();var o=ac.createOscillator(),g=ac.createGain();
+  o.frequency.setValueAtTime(500+Math.random()*400,ac.currentTime);o.frequency.exponentialRampToValueAtTime(1200,ac.currentTime+.08);
+  g.gain.setValueAtTime(.18,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.12);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.13);}catch(x){}}
+
+function key(i){return 'kc_pic_'+i;}
+function load(i){pic=i;hist=[];
+  [].forEach.call(document.querySelectorAll('.pic'),function(x){x.classList.toggle('on',+x.dataset.i===i);});
+  $('board').innerHTML='<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" id="svg">'+PICS[i][1]+'</svg>';
+  var rs=document.querySelectorAll('#svg .r'),saved=null;try{saved=JSON.parse(localStorage.getItem(key(i))||'null');}catch(x){}
+  [].forEach.call(rs,function(r,k){if(r.dataset.nofill)return;r.setAttribute('fill',saved&&saved[k]?saved[k]:'#FFFFFF');});
+  rs[0].style.strokeWidth='0';}
+function store(){var a=[].map.call(document.querySelectorAll('#svg .r'),function(r){return r.getAttribute('fill');});
+  try{localStorage.setItem(key(pic),JSON.stringify(a));}catch(x){}}
+var celebrated={};
+$('board').addEventListener('click',function(e){var r=e.target.closest('.r');if(!r||r.dataset.nofill)return;
+  var old=r.getAttribute('fill');if(old===color)return;hist.push([r,old]);r.setAttribute('fill',color);pop();store();
+  var all=[].every.call(document.querySelectorAll('#svg .r'),function(x){return x.dataset.nofill||x.getAttribute('fill')!=='#FFFFFF';});
+  if(all&&!celebrated[pic]){celebrated[pic]=1;var d=$('done');d.classList.remove('show');void d.offsetWidth;d.classList.add('show');}});
+$('undo').onclick=function(){var h=hist.pop();if(h){h[0].setAttribute('fill',h[1]);store();}};
+$('clear').onclick=function(){try{localStorage.removeItem(key(pic));}catch(x){}celebrated[pic]=0;load(pic);};
+// 存成圖片（iOS 會開新頁，長按即可存到照片）
+$('save').onclick=function(){var svg=$('svg');var s=new XMLSerializer().serializeToString(svg);
+  var img=new Image();img.onload=function(){var c=document.createElement('canvas');c.width=c.height=800;var g=c.getContext('2d');
+    g.fillStyle='#fff';g.fillRect(0,0,800,800);g.drawImage(img,0,0,800,800);
+    var url=c.toDataURL('image/png');var a=document.createElement('a');a.href=url;a.download='我的著色畫.png';
+    if('download' in a&&!/iPhone|iPad|iPod/.test(navigator.userAgent)){document.body.appendChild(a);a.click();a.remove();}
+    else{var w=window.open();if(w){w.document.write('<title>長按圖片存起來</title><body style="margin:0;background:#eee;text-align:center"><p style="font:18px sans-serif">長按圖片 → 加入照片</p><img src="'+url+'" style="width:100%;max-width:600px"></body>');}}};
+  var css='.r{stroke:#3D2C4E;stroke-width:4;stroke-linejoin:round}.l{fill:none;stroke:#3D2C4E;stroke-width:4;stroke-linecap:round}.d{fill:#3D2C4E}';
+  s=s.replace('>','><style>'+css+'</style>');
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);};
+load(0);
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){});}
+})();
+</script>
+</body>
+</html>

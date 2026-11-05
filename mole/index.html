@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>打地鼠</title>
+<meta name="theme-color" content="#7DD08A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;}
+body{min-height:100vh;min-height:100dvh;font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(180deg,#9ED8FF 0%,#C8F0B8 38%,#86D46F 100%);color:#2F3B1E;-webkit-user-select:none;user-select:none;overflow:hidden;touch-action:manipulation;}
+.wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 16px);}
+#kidsHome{position:fixed;z-index:99;top:calc(env(safe-area-inset-top) + 8px);left:calc(env(safe-area-inset-left) + 8px);width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:24px;text-decoration:none;background:rgba(255,255,255,.92);box-shadow:0 3px 0 rgba(0,0,0,.15);}
+h1{text-align:center;margin:6px 0 6px;font-size:28px;color:#fff;text-shadow:0 3px 0 #4E9A3A;letter-spacing:2px;}
+.hud{display:flex;justify-content:center;gap:10px;margin-bottom:12px;}
+.pill{background:#fff;border-radius:999px;padding:8px 16px;font-weight:900;font-size:18px;box-shadow:0 3px 0 rgba(0,0,0,.12);}
+.field{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.hole{position:relative;aspect-ratio:1/1;border-radius:50%;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 72%,#5A3A22 0 38%,#7B5233 39% 47%,transparent 48%);}
+.who{position:absolute;left:0;right:0;bottom:-70%;text-align:center;font-size:min(17vw,78px);line-height:1;transition:bottom .16s ease-out;}
+.hole.up .who{bottom:20%;}
+.hole.hit .who{animation:bonk .35s;}
+@keyframes bonk{30%{transform:scale(1.25,.7)}100%{transform:scale(1)}}
+.pts{position:absolute;left:0;right:0;top:8%;text-align:center;font-weight:900;font-size:26px;color:#fff;text-shadow:0 2px 0 #E07A1F;animation:up .7s forwards;pointer-events:none;}
+@keyframes up{to{transform:translateY(-30px);opacity:0}}
+.panel{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(47,59,30,.35);}
+.panel.hide{display:none;}
+.card{background:#fff;border-radius:32px;padding:24px 20px;max-width:340px;width:100%;text-align:center;box-shadow:0 10px 0 rgba(0,0,0,.15);}
+.card .big{font-size:72px;}
+.card h2{margin:6px 0;font-size:26px;}
+.card p{margin:6px 0 14px;font-size:17px;font-weight:700;color:#5A6B44;line-height:1.5;}
+.btn{border:none;border-radius:999px;padding:14px 22px;font-size:20px;font-weight:900;background:#FF9F43;color:#fff;box-shadow:0 4px 0 #C96F1C;font-family:inherit;margin:4px;}
+.btn.g{background:#5BBF4A;box-shadow:0 4px 0 #3E8E31;}
+</style>
+</head>
+<body>
+<a id="kidsHome" href="../" aria-label="回遊戲大廳">🏠</a>
+<div class="wrap">
+  <h1>🐹 打地鼠</h1>
+  <div class="hud"><div class="pill" id="time">⏱️ 30</div><div class="pill" id="score">🌟 0</div><div class="pill" id="best">🏆 0</div></div>
+  <div class="field" id="field"></div>
+</div>
+<div class="panel" id="panel"><div class="card">
+  <div class="big" id="pBig">🐹</div>
+  <h2 id="pTitle">打地鼠</h2>
+  <p id="pText">地鼠跑出來就趕快點牠！<br>🐹 +1　🐰 +2　⭐ +5<br>小心不要點到 🐻 熊爸爸喔</p>
+  <button class="btn g" data-lv="0">🐢 慢慢來</button><button class="btn" data-lv="1">🐇 快一點</button>
+</div></div>
+<script>
+(function(){
+var $=function(id){return document.getElementById(id);};
+var N=9,holes=[],score=0,left=30,timer=null,spawn=null,playing=false,lv=0;
+var best=0;try{best=parseInt(localStorage.getItem('km_best')||'0',10)||0;}catch(e){}
+$('best').textContent='🏆 '+best;
+var html='';for(var i=0;i<N;i++)html+='<div class="hole" data-i="'+i+'"><div class="who"></div></div>';
+$('field').innerHTML=html;holes=[].slice.call(document.querySelectorAll('.hole'));
+var ac=null;
+function tone(f,d,t){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();var o=ac.createOscillator(),g=ac.createGain();o.type=t||'square';o.frequency.value=f;
+  g.gain.setValueAtTime(.12,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+// 角色：圖、分數、出現機率權重
+var WHO=[['🐹',1,60],['🐰',2,20],['⭐',5,6],['🐻',-3,14]];
+function pick(){var t=0,r;WHO.forEach(function(w){t+=w[2];});r=Math.random()*t;for(var i=0;i<WHO.length;i++){r-=WHO[i][2];if(r<0)return WHO[i];}return WHO[0];}
+function pop(){
+  var free=holes.filter(function(h){return !h.classList.contains('up');});if(!free.length)return;
+  var h=free[Math.floor(Math.random()*free.length)],w=pick();
+  h.firstChild.textContent=w[0];h.dataset.v=w[1];h.classList.remove('hit');h.classList.add('up');
+  var stay=(lv?900:1500)-Math.min(400,(30-left)*12);
+  clearTimeout(h._t);h._t=setTimeout(function(){h.classList.remove('up');},stay);
+}
+function hit(h){
+  if(!playing||!h.classList.contains('up')||h.classList.contains('hit'))return;
+  var v=+h.dataset.v;h.classList.add('hit');clearTimeout(h._t);setTimeout(function(){h.classList.remove('up');},250);
+  score=Math.max(0,score+v);$('score').textContent='🌟 '+score;
+  var p=document.createElement('div');p.className='pts';p.textContent=(v>0?'+':'')+v;if(v<0)p.style.textShadow='0 2px 0 #C0392B';h.appendChild(p);setTimeout(function(){p.remove();},700);
+  if(v>0){tone(700+v*80,.12);setTimeout(function(){tone(1000+v*80,.1);},80);}else{tone(160,.35,'sawtooth');if(navigator.vibrate)navigator.vibrate(120);}
+}
+$('field').addEventListener('pointerdown',function(e){var h=e.target.closest('.hole');if(h){e.preventDefault();hit(h);}});
+function start(l){lv=l;score=0;left=30;playing=true;$('score').textContent='🌟 0';$('time').textContent='⏱️ 30';$('panel').classList.add('hide');
+  holes.forEach(function(h){h.classList.remove('up','hit');});
+  clearInterval(timer);clearInterval(spawn);
+  spawn=setInterval(function(){pop();if(lv&&Math.random()<.35)pop();},lv?600:900);
+  timer=setInterval(function(){left--;$('time').textContent='⏱️ '+left;if(left<=5&&left>0)tone(520,.08,'sine');if(left<=0)end();},1000);}
+function end(){playing=false;clearInterval(timer);clearInterval(spawn);holes.forEach(function(h){h.classList.remove('up');});
+  var nb=score>best;if(nb){best=score;try{localStorage.setItem('km_best',best);}catch(e){}$('best').textContent='🏆 '+best;}
+  $('pBig').textContent=score>=30?'🏆':score>=15?'🎉':'👍';$('pTitle').textContent='得到 '+score+' 分！';
+  $('pText').innerHTML=nb?'破紀錄了！好厲害 ✨':'再玩一次，挑戰 🏆 '+best+' 分！';
+  $('panel').classList.remove('hide');tone(523,.15,'sine');setTimeout(function(){tone(659,.15,'sine');},150);setTimeout(function(){tone(784,.3,'sine');},300);}
+[].forEach.call(document.querySelectorAll('.panel .btn'),function(b){b.onclick=function(){start(+b.dataset.lv);};});
+document.addEventListener('visibilitychange',function(){if(document.hidden&&playing)end();});
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){});}
+})();
+</script>
+</body>
+</html>

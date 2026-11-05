@@ -1,11 +1,13 @@
 // 小小益智樂園：整個樂園共用一個 Service Worker（網路優先，離線用快取）
-var C = 'kids-v1';
+var C = 'kids-v2';
 var PRE = [
   './', 'index.html', 'manifest.json', 'icon.svg', 'icon-192.png', 'icon-512.png',
   'zoo/', 'zoo/index.html',
   'sound/', 'sound/index.html',
   'number/', 'number/index.html',
-  'warmmy/', 'warmmy/index.html', 'warmmy/icons/icon.svg'
+  'warmmy/', 'warmmy/index.html', 'warmmy/icons/icon.svg',
+  'zhuyin/', 'zhuyin/index.html', 'color/', 'color/index.html',
+  'mole/', 'mole/index.html', 'sort/', 'sort/index.html'
 ];
 self.addEventListener('install', function (e) {
   self.skipWaiting();

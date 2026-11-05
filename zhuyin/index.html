@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>注音ㄅㄆㄇ</title>
+<meta name="theme-color" content="#FFB86B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;}
+body{min-height:100vh;min-height:100dvh;font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(180deg,#FFE7C2,#FFF7EC);color:#4A3424;-webkit-user-select:none;user-select:none;}
+.wrap{max-width:620px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 20px);}
+#kidsHome{position:fixed;z-index:99;top:calc(env(safe-area-inset-top) + 8px);left:calc(env(safe-area-inset-left) + 8px);width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:24px;text-decoration:none;background:rgba(255,255,255,.92);box-shadow:0 3px 0 rgba(0,0,0,.15);}
+h1{text-align:center;margin:6px 0 2px;font-size:28px;color:#E07A1F;letter-spacing:2px;}
+.score{text-align:center;font-weight:800;font-size:17px;margin-bottom:8px;}
+.tabs{display:flex;gap:8px;justify-content:center;margin:8px 0 12px;}
+.tab{border:none;border-radius:999px;padding:10px 18px;font-size:17px;font-weight:800;background:#fff;color:#8A6A4E;box-shadow:0 3px 0 rgba(0,0,0,.1);font-family:inherit;}
+.tab.on{background:#FF9F43;color:#fff;}
+.grp{font-weight:800;color:#A07A5A;margin:12px 4px 6px;font-size:15px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;}
+.k{border:none;border-radius:16px;height:64px;font-size:34px;font-weight:700;background:#fff;color:#4A3424;box-shadow:0 4px 0 rgba(0,0,0,.12);font-family:inherit;}
+.k:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.12);}
+.k.c1{background:#FFE3E3}.k.c2{background:#E3F4FF}.k.c3{background:#E8FFE3}
+.big{position:fixed;inset:0;z-index:50;background:rgba(74,52,36,.45);display:none;align-items:center;justify-content:center;padding:20px;}
+.big.show{display:flex;}
+.card{background:#fff;border-radius:32px;padding:26px 20px;width:100%;max-width:340px;text-align:center;box-shadow:0 10px 0 rgba(0,0,0,.15);animation:pop .3s;}
+@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+.card .sym{font-size:110px;line-height:1.1;color:#E07A1F;font-weight:700;}
+.card .emo{font-size:84px;line-height:1.2;}
+.card .word{font-size:34px;font-weight:900;letter-spacing:4px;margin:4px 0 14px;}
+.btn{border:none;border-radius:999px;padding:14px 26px;font-size:20px;font-weight:900;background:#FF9F43;color:#fff;box-shadow:0 4px 0 #C96F1C;font-family:inherit;margin:4px;}
+.btn.gray{background:#EADBCB;color:#6A4E36;box-shadow:0 4px 0 #C9B39C;}
+.quiz{text-align:center;}
+.qemo{font-size:110px;line-height:1.2;margin-top:6px;}
+.qword{font-size:30px;font-weight:900;letter-spacing:6px;margin-bottom:6px;}
+.qhint{font-size:16px;color:#8A6A4E;font-weight:700;margin-bottom:14px;}
+.opts{display:flex;gap:12px;justify-content:center;}
+.opt{width:96px;height:96px;font-size:56px;border:none;border-radius:24px;background:#fff;box-shadow:0 5px 0 rgba(0,0,0,.14);font-family:inherit;font-weight:700;color:#4A3424;}
+.opt.ok{background:#8FE38F;}.opt.bad{background:#FFB3B3;animation:shake .4s;}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.fb{height:40px;font-size:26px;font-weight:900;margin-top:12px;}
+</style>
+</head>
+<body>
+<a id="kidsHome" href="../" aria-label="回遊戲大廳">🏠</a>
+<div class="wrap">
+  <h1>注音ㄅㄆㄇ</h1>
+  <div class="score" id="score">⭐ 0</div>
+  <div class="tabs">
+    <button class="tab on" id="tLearn">📖 學注音</button>
+    <button class="tab" id="tQuiz">🎯 考考你</button>
+  </div>
+  <div id="learn"></div>
+  <div id="quiz" class="quiz" style="display:none">
+    <div class="qemo" id="qEmo">🐶</div>
+    <div class="qword" id="qWord">小狗</div>
+    <div class="qhint">這個字裡面有哪一個注音？　<button class="btn gray" id="qSay" style="padding:6px 14px;font-size:16px">🔊 再聽</button></div>
+    <div class="opts" id="opts"></div>
+    <div class="fb" id="fb"></div>
+  </div>
+</div>
+<div class="big" id="big"><div class="card">
+  <div class="sym" id="bSym">ㄅ</div><div class="emo" id="bEmo">🥟</div><div class="word" id="bWord">包子</div>
+  <button class="btn" id="bSay">🔊 再聽一次</button><button class="btn gray" id="bClose">好了</button>
+</div></div>
+<script>
+(function(){
+// 符號、念法（給語音用的近似字）、例字、圖、例字裡該符號的位置說明
+var Z=[
+ ['ㄅ','玻','包子','🥟'],['ㄆ','坡','葡萄','🍇'],['ㄇ','摸','馬','🐴'],['ㄈ','佛','飛機','✈️'],
+ ['ㄉ','得','大象','🐘'],['ㄊ','特','兔子','🐰'],['ㄋ','訥','牛','🐮'],['ㄌ','勒','老虎','🐯'],
+ ['ㄍ','哥','鴿子','🕊️'],['ㄎ','科','恐龍','🦖'],['ㄏ','喝','猴子','🐵'],
+ ['ㄐ','基','雞','🐔'],['ㄑ','七','汽車','🚗'],['ㄒ','西','西瓜','🍉'],
+ ['ㄓ','知','豬','🐷'],['ㄔ','吃','船','⛵'],['ㄕ','獅','獅子','🦁'],['ㄖ','日','日出','🌅'],
+ ['ㄗ','資','足球','⚽'],['ㄘ','雌','草莓','🍓'],['ㄙ','思','松鼠','🐿️'],
+ ['ㄧ','衣','衣服','👕'],['ㄨ','烏','烏龜','🐢'],['ㄩ','魚','魚','🐟'],
+ ['ㄚ','啊','青蛙','🐸'],['ㄛ','喔','菠蘿','🍍'],['ㄜ','鵝','鵝','🦢'],['ㄝ','耶','椰子','🥥'],
+ ['ㄞ','哀','愛心','❤️'],['ㄟ','欸','杯子','🥤'],['ㄠ','凹','貓咪','🐱'],['ㄡ','歐','小狗','🐶'],
+ ['ㄢ','安','雨傘','☂️'],['ㄣ','恩','森林','🌲'],['ㄤ','昂','綿羊','🐑'],['ㄥ','鞥','蜜蜂','🐝'],['ㄦ','兒','耳朵','👂']
+];
+// 每個例字完整拼音裡有的符號（出題時，干擾選項不能也出現在裡面）
+var SP={};'包子:ㄅㄠㄗ,葡萄:ㄆㄨㄊㄠ,馬:ㄇㄚ,飛機:ㄈㄟㄐㄧ,大象:ㄉㄚㄒㄧㄤ,兔子:ㄊㄨㄗ,牛:ㄋㄧㄡ,老虎:ㄌㄠㄏㄨ,鴿子:ㄍㄜㄗ,恐龍:ㄎㄨㄥㄌ,猴子:ㄏㄡㄗ,雞:ㄐㄧ,汽車:ㄑㄧㄔㄜ,西瓜:ㄒㄧㄍㄨㄚ,豬:ㄓㄨ,船:ㄔㄨㄢ,獅子:ㄕㄗ,日出:ㄖㄔㄨ,足球:ㄗㄨㄑㄧㄡ,草莓:ㄘㄠㄇㄟ,松鼠:ㄙㄨㄥㄕ,衣服:ㄧㄈㄨ,烏龜:ㄨㄍㄟ,魚:ㄩ,青蛙:ㄑㄧㄥㄨㄚ,菠蘿:ㄅㄛㄌㄨ,鵝:ㄜ,椰子:ㄧㄝㄗ,愛心:ㄞㄒㄧㄣ,杯子:ㄅㄟㄗ,貓咪:ㄇㄠㄧ,小狗:ㄒㄧㄠㄍㄡ,雨傘:ㄩㄙㄢ,森林:ㄙㄣㄌㄧ,綿羊:ㄇㄧㄢㄧㄤ,蜜蜂:ㄇㄧㄈㄥ,耳朵:ㄦㄉㄨㄛ'.split(',').forEach(function(x){x=x.split(':');SP[x[0]]=x[1];});
+var GROUPS=[['聲母',0,21,'c1'],['介音',21,24,'c2'],['韻母',24,37,'c3']];
+var $=function(id){return document.getElementById(id);};
+var stars=0;try{stars=parseInt(localStorage.getItem('kz_stars')||'0',10)||0;}catch(e){}
+function showStars(){$('score').textContent='⭐ '+stars;}
+showStars();
+
+// 語音
+var voice=null;
+function pickVoice(){try{var vs=speechSynthesis.getVoices();voice=vs.filter(function(v){return /zh[-_]TW/i.test(v.lang);})[0]||vs.filter(function(v){return /^zh/i.test(v.lang);})[0]||null;}catch(e){}}
+if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+function say(t){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='zh-TW';u.rate=.8;if(voice)u.voice=voice;speechSynthesis.speak(u);}catch(e){}}
+// 音效
+var ac=null;
+function tone(f,d,type){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();var o=ac.createOscillator(),g=ac.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(.25,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function yay(){tone(660,.15);setTimeout(function(){tone(880,.25);},120);}
+function boo(){tone(220,.3,'triangle');}
+
+// 學注音
+var html='';
+GROUPS.forEach(function(g){html+='<div class="grp">'+g[0]+'</div><div class="grid">';
+  for(var i=g[1];i<g[2];i++)html+='<button class="k '+g[3]+'" data-i="'+i+'">'+Z[i][0]+'</button>';html+='</div>';});
+$('learn').innerHTML=html;
+var cur=0;
+function speak(i){say(Z[i][1]+'，'+Z[i][2]);}
+$('learn').addEventListener('click',function(e){var b=e.target.closest('.k');if(!b)return;cur=+b.dataset.i;
+  $('bSym').textContent=Z[cur][0];$('bEmo').textContent=Z[cur][3];$('bWord').textContent=Z[cur][2];$('big').classList.add('show');speak(cur);});
+$('bSay').onclick=function(){speak(cur);};
+$('bClose').onclick=function(){$('big').classList.remove('show');};
+$('big').addEventListener('click',function(e){if(e.target===$('big'))$('big').classList.remove('show');});
+
+// 考考你
+var ans=0,locked=false;
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function next(){locked=false;$('fb').textContent='';ans=Math.floor(Math.random()*Z.length);
+  var c=[ans];while(c.length<3){var r=Math.floor(Math.random()*Z.length);if(c.indexOf(r)<0&&SP[Z[ans][2]].indexOf(Z[r][0])<0)c.push(r);}
+  shuffle(c);$('qEmo').textContent=Z[ans][3];$('qWord').textContent=Z[ans][2];
+  $('opts').innerHTML=c.map(function(i){return '<button class="opt" data-i="'+i+'">'+Z[i][0]+'</button>';}).join('');
+  say(Z[ans][2]);}
+$('opts').addEventListener('click',function(e){var b=e.target.closest('.opt');if(!b||locked)return;var i=+b.dataset.i;
+  if(i===ans){locked=true;b.classList.add('ok');yay();stars++;try{localStorage.setItem('kz_stars',stars);}catch(x){}showStars();
+    $('fb').textContent='答對了！🎉';say('答對了！'+Z[ans][1]+'，'+Z[ans][2]);setTimeout(next,1600);}
+  else{b.classList.add('bad');boo();$('fb').textContent='再想想看 🤔';setTimeout(function(){b.classList.remove('bad');},450);}});
+$('qSay').onclick=function(){say(Z[ans][2]);};
+
+function mode(q){$('tLearn').classList.toggle('on',!q);$('tQuiz').classList.toggle('on',q);
+  $('learn').style.display=q?'none':'';$('quiz').style.display=q?'':'none';if(q)next();}
+$('tLearn').onclick=function(){mode(false);};$('tQuiz').onclick=function(){mode(true);};
+
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('../sw.js',{scope:'../'}).catch(function(){});}
+})();
+</script>
+</body>
+</html>
